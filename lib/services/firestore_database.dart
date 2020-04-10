@@ -8,6 +8,8 @@ import 'package:meta/meta.dart';
 import 'package:vanevents/models/event.dart';
 import 'package:vanevents/models/formule.dart';
 import 'package:vanevents/models/message.dart';
+import 'package:vanevents/models/participant.dart';
+import 'package:vanevents/models/ticket.dart';
 import 'package:vanevents/models/user.dart';
 import 'package:vanevents/services/firestore_path.dart';
 import 'package:vanevents/services/firestore_service.dart';
@@ -174,69 +176,43 @@ class FirestoreDatabase {
   }
 
   Future<String> creationChatRoom(String idFriend) async {
-    DocumentReference myUserRef = _db.collection('users').document(uid);
-
-    DocumentReference friendUserRef =
-        _db.collection('users').document(idFriend);
-
-    List<String> myChat = List<String>();
-
-    //my id
-    myChat = await myUserRef
-        .get()
-        .then((doc) => User.fromMap(doc.data, uid).chat)
-        .then((list) => list.cast());
-
     String idChatRoom = '';
 
-    if (myChat.contains(idFriend)) {
-      //fetch idchat
-
-      idChatRoom = await myUserRef.get().then(
-          (doc) => User.fromMap(doc.data, uid).chatId[idFriend].toString());
-    } else {
-      //creation id chat
-      //création d'un chatRoom
-      DocumentReference chatRoom = _db.collection('chats').document();
-      idChatRoom = chatRoom.documentID;
-      await _db.collection('chats').document(idChatRoom).setData({
-        'id': idChatRoom,
-        'createdAt': DateTime.now(),
-      });
-      //Partage de l'ID chat room
-      await myUserRef.updateData({
-        'chat': FieldValue.arrayUnion([idFriend]),
-        'chatId': FieldValue.arrayUnion([
-          {idFriend: idChatRoom}
-        ])
-      });
-      await friendUserRef.updateData({
-        'chat': FieldValue.arrayUnion([uid]),
-        'chatId': FieldValue.arrayUnion([
-          {uid: idChatRoom}
-        ])
-      });
-    }
-
-//    sonChat = await friendUserRef
-//        .get()
-//        .then((doc) => User.fromMap(doc.data).chat)
-//        .then((list) => list.cast());
-//
-//
-//
-//
-//
-//
-//    if (sonChat != null && myChat != null) {
-//      for (int j = 0; j < sonChat.length; j++) {
-//        if (myChat.contains(sonChat[j])) {
-//          idChatRoom = sonChat[j];
-//          break;
-//        }
-//      }
-//    }
-
+    await _db
+        .collection('users')
+        .where('id', isEqualTo: uid)
+        .where('chat', arrayContains: idFriend)
+        .limit(1)
+        .getDocuments()
+        .then((docs) async {
+      if (docs.documents.isNotEmpty) {
+        idChatRoom = User.fromMap(docs.documents.elementAt(0).data, uid)
+            .chatId[idFriend]
+            .toString();
+      } else {
+        //creation id chat
+        //création d'un chatRoom
+        DocumentReference chatRoom = _db.collection('chats').document();
+        idChatRoom = chatRoom.documentID;
+        await _db.collection('chats').document(idChatRoom).setData({
+          'id': idChatRoom,
+          'createdAt': DateTime.now(),
+        });
+        //Partage de l'ID chat room
+        await _db.collection('users').document(uid).updateData({
+          'chat': FieldValue.arrayUnion([idFriend]),
+          'chatId': FieldValue.arrayUnion([
+            {idFriend: idChatRoom}
+          ])
+        });
+        await _db.collection('users').document(idFriend).updateData({
+          'chat': FieldValue.arrayUnion([uid]),
+          'chatId': FieldValue.arrayUnion([
+            {uid: idChatRoom}
+          ])
+        });
+      }
+    });
     return idChatRoom;
   }
 
@@ -355,8 +331,8 @@ class FirestoreDatabase {
           'lastActivity': DateTime.now(),
           'provider': user.providerId,
           'isLogin': false,
-          'attended': [],
-          'willAttend': [],
+          'attendTo': [],
+          'tickets': [],
           'chat': [],
           'chatId': {}
         }, merge: true);
@@ -396,8 +372,8 @@ class FirestoreDatabase {
           'lastActivity': DateTime.now(),
           'provider': user.providerId,
           'isLogin': false,
-          'attended': [],
-          'willAttend': [],
+          'attendTo': [],
+          'tickets': [],
           'chat': [],
           'chatId': {}
         }, merge: true);
@@ -436,5 +412,21 @@ class FirestoreDatabase {
         .catchError((err) {
       print(err);
     });
+  }
+
+  void addNewTicket(Ticket ticket) async {
+    await _db
+        .collection('tickets')
+        .document(ticket.id)
+        .setData(ticket.toMap(), merge: true);
+  }
+
+  Stream<List<Ticket>> streamTickets() {
+    return _db
+        .collection('tickets')
+        .where('uid', isEqualTo: uid)
+        .snapshots()
+        .map((docs) =>
+            docs.documents.map((doc) => Ticket.fromMap(doc.data)).toList());
   }
 }

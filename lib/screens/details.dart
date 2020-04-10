@@ -239,7 +239,7 @@ class _DetailsState extends State<Details> {
           fillColor: Theme.of(context).colorScheme.primary,
           onPressed: () {
             ExtendedNavigator.of(context)
-                .pushNamed(Routes.formulaChoice,arguments: FormulaChoiceArguments(formulas: formulas) );
+                .pushNamed(Routes.formulaChoice,arguments: FormulaChoiceArguments(formulas: formulas, eventId: widget.event.id) );
 
 
           }),

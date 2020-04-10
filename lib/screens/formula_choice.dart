@@ -4,16 +4,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_stripe_payment/flutter_stripe_payment.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:vanevents/models/formule.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
 import 'package:vanevents/models/participant.dart';
-import 'package:qr/qr.dart';
+import 'package:vanevents/models/ticket.dart';
+import 'package:vanevents/models/user.dart';
+import 'package:vanevents/services/firebase_auth_service.dart';
+import 'package:vanevents/services/firestore_database.dart';
 
 class FormulaChoice extends StatefulWidget {
   final List<Formule> formulas;
+  final String eventId;
 
-  FormulaChoice(this.formulas);
+  FormulaChoice(this.formulas, this.eventId);
 
   @override
   _FormulaChoiceState createState() => _FormulaChoiceState();
@@ -46,6 +51,9 @@ class _FormulaChoiceState extends State<FormulaChoice> {
   double totalCost = 0;
 
   final _stripePayment = FlutterStripePayment();
+
+  FirestoreDatabase db;
+  User user;
 
   @override
   void initState() {
@@ -100,6 +108,10 @@ class _FormulaChoiceState extends State<FormulaChoice> {
 
   @override
   Widget build(BuildContext context) {
+    db = Provider.of<FirestoreDatabase>(context, listen: false);
+
+    user = Provider.of<User>(context, listen: false);
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       key: _scaffoldKey,
@@ -161,9 +173,11 @@ class _FormulaChoiceState extends State<FormulaChoice> {
 
     if (participant == null) {
       if (isNom) {
-        participants.add(Participant(_fbKey, index, formule, val, ''));
+        participants.add(Participant(
+            fbKey: _fbKey, index: index, formule: formule, nom: val));
       } else {
-        participants.add(Participant(_fbKey, index, formule, '', val));
+        participants.add(Participant(
+            fbKey: _fbKey, index: index, formule: formule, prenom: val));
       }
     } else {
       int index = participants.indexOf(participant);
@@ -438,22 +452,6 @@ class _FormulaChoiceState extends State<FormulaChoice> {
 //      }
 //  }
 
-  Future<List<bool>> _calc(List input) async {
-    final code = QrCode(input[0] as int, input[1] as int)
-      ..addData(input[2] as String)
-      ..make();
-
-    final squares = <bool>[];
-
-    for (var x = 0; x < code.moduleCount; x++) {
-      for (var y = 0; y < code.moduleCount; y++) {
-        squares.add(code.isDark(y, x));
-      }
-    }
-
-    return squares;
-  }
-
   _buildTotalContent() {
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -497,10 +495,12 @@ class _FormulaChoiceState extends State<FormulaChoice> {
 
                           participants.forEach((participants) {
                             description = description +
-                                participants.formule.title+
+                                participants.formule.title +
                                 ' pour ' +
                                 participants.nom +
-                                ' ' + participants.prenom +'\n';
+                                ' ' +
+                                participants.prenom +
+                                '\n';
                           });
 
                           print(description);
@@ -576,12 +576,23 @@ class _FormulaChoiceState extends State<FormulaChoice> {
                             final status = paymentIntentX['status'];
 
                             if (status == 'succeeded') {
+                              Map participant = Map.fromIterable(participants,
+                                  key: (key) => (key as Participant).nom +' '+(key as Participant).prenom,
+                                  value: (val) =>
+                                      (val as Participant).formule.title);
 
-                              final qrCode = new QrCode(4, QrErrorCorrectLevel.L);
-                              qrCode.addData("Hello, world in QR form!");
-                              qrCode.make();
+                              Ticket ticket = Ticket(
+                                  id: paymentIntentX['id'],
+                                  uid: user.id,
+                                  eventId: widget.eventId,
+                                  nbParticipants: participants.length,
+                                  participant: participant,
+                                  amount: paymentIntentX['amount'],
+                                  dateTime: DateTime.now(),
+                                  receiptNumber: ((paymentIntentX['charges']
+                                      ['data'] as List)[0] as Map)['receipt_number']);
 
-
+                              db.addNewTicket(ticket);
 
                               //payment was confirmed by the server without need for futher authentification
 
@@ -594,10 +605,10 @@ class _FormulaChoiceState extends State<FormulaChoice> {
                                   context: context,
                                   builder: (BuildContext context) =>
                                       ShowDialogToDismiss(
-                                          title: 'Success',
+                                          title: 'Payement validé',
                                           content:
-                                              'Payment completed. $amount € succesfully charged',
-                                          buttonText: 'CLOSE'));
+                                              '$amount € montant payé avec succès\nUn nouveau billet est disponible ',
+                                          buttonText: 'FERMER'));
 
                               setState(() {
                                 showSpinner = false;
@@ -969,7 +980,7 @@ class _CardFormulaState extends State<CardFormula>
 
   void onTap(bool plus, int index, Formule formule) {
     if (plus) {
-      participants.insert(index, Participant(null, index, formule, '', ''));
+      participants.insert(index, Participant(index: index, formule: formule));
       _listKey.currentState
           .insertItem(index, duration: Duration(milliseconds: 500));
       setState(() {

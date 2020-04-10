@@ -62,7 +62,7 @@ class User {
       chatId: data['chatId'].toString().length == 2
           ? {}
           : Map.fromIterable((data['chatId'] as List), //2 = est vide
-          key: (v) => v.toString().substring(
+          key: (v) =>  v.toString().substring(
               v.toString().indexOf('{') + 1, v.toString().indexOf(':')),
           value: (v) => v
               .toString()

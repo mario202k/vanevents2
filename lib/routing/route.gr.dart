@@ -155,7 +155,7 @@ class Router extends RouterBase {
         final typedArgs =
             args as FormulaChoiceArguments ?? FormulaChoiceArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => FormulaChoice(typedArgs.formulas),
+          builder: (_) => FormulaChoice(typedArgs.formulas, typedArgs.eventId),
           settings: settings,
         );
       default:
@@ -224,5 +224,6 @@ class DetailsArguments {
 //FormulaChoice arguments holder class
 class FormulaChoiceArguments {
   final List<Formule> formulas;
-  FormulaChoiceArguments({this.formulas});
+  final String eventId;
+  FormulaChoiceArguments({this.formulas, this.eventId});
 }
