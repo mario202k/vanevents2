@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inner_drawer/inner_drawer.dart';
@@ -115,8 +116,14 @@ class _HomeEventsState extends State<HomeEvents> {
                                           .secondary,
                                     ),
                                     onTap: (index) {
-                                      Router.navigator.pushNamed(Routes.details,arguments:
-                                      eventsList.elementAt(index));
+                                      ExtendedNavigator.of(context).pushNamed(
+                                          Routes.details,
+                                          arguments: DetailsArguments(
+                                              event:
+                                                  eventsList.elementAt(index)));
+
+//                                      Router.navigator.pushNamed(Routes.details,arguments:
+//                                      eventsList.elementAt(index));
 
 //                                      Navigator.of(context).pushNamed(
 //                                          Router.details,

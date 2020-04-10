@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -91,7 +92,9 @@ class _WalkthroughState extends State<Walkthrough> {
                           alignment: Alignment.centerRight,
                           child: FlatButton(
                             onPressed: () {
-                              Router.navigator.pushNamed(Routes.login);
+                              ExtendedNavigator.of(context)
+                                  .pushNamed(Routes.login);
+
                             },
                             child: Text(
                               'Passer',
@@ -241,7 +244,8 @@ class _WalkthroughState extends State<Walkthrough> {
                 color: Colors.white,
                 child: GestureDetector(
                   onTap: () {
-                    Router.navigator.pushNamed(Routes.login);
+                    ExtendedNavigator.of(context)
+                        .pushNamed(Routes.login);
                   },
                   child: Center(
                     child: Padding(

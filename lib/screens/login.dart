@@ -10,7 +10,6 @@ import 'package:vanevents/routing/route.gr.dart';
 import 'package:vanevents/services/firebase_auth_service.dart';
 import 'package:vanevents/shared/card_form.dart';
 
-
 class Login extends StatefulWidget {
   @override
   _LoginState createState() => _LoginState();
@@ -33,7 +32,6 @@ class _LoginState extends State<Login> {
   ValueNotifier<bool> valueNotifier;
   FirebaseAuthService auth;
 
-
   void _togglePassword() {
     setState(() {
       _obscureTextSignupConfirm = !_obscureTextSignupConfirm;
@@ -41,7 +39,7 @@ class _LoginState extends State<Login> {
   }
 
   _afterLayout(_) {
-    if(!isDispose){
+    if (!isDispose) {
       setState(() {
         height = _getSizes() / 45;
       });
@@ -49,16 +47,14 @@ class _LoginState extends State<Login> {
   }
 
   double _getSizes() {
-
     double height = 4.30;
 
-    if(key.currentContext != null){
+    if (key.currentContext != null) {
       final RenderBox renderBoxRed = key.currentContext.findRenderObject();
       final sizeRed = renderBoxRed.size;
-      height =  sizeRed.height;
+      height = sizeRed.height;
     }
     return height;
-
   }
 
   @override
@@ -73,24 +69,23 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-
-    WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
+    //WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Theme.of(context).colorScheme.primary,
+      statusBarColor: Theme.of(context).colorScheme.secondary,
       statusBarIconBrightness: Theme.of(context).colorScheme.brightness,
-      systemNavigationBarColor: Theme.of(context).colorScheme.primary,
+      systemNavigationBarColor: Theme.of(context).colorScheme.secondary,
       systemNavigationBarIconBrightness:
           Theme.of(context).colorScheme.brightness,
     ));
 
-    auth =
-        Provider.of<FirebaseAuthService>(context, listen: false);
+    auth = Provider.of<FirebaseAuthService>(context, listen: false);
 
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.background,
+
 //          gradient: LinearGradient(
 //            colors: [
 //              Theme.of(context).colorScheme.secondary,
@@ -103,112 +98,143 @@ class _LoginState extends State<Login> {
         ),
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints viewportConstraints) {
-
             return SingleChildScrollView(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   minHeight: viewportConstraints.maxHeight,
                 ),
-                child: Column(
+                child: Stack(
                   children: <Widget>[
-                    AspectRatio(
-                        aspectRatio: 1.6,
-                        child: FlareActor(
-                          'assets/animations/dance.flr',
+                    SizedBox(
+                      height: viewportConstraints.maxHeight,
+                      child: Opacity(
+                        opacity: 0.4,
+                        child: Align(
                           alignment: Alignment.center,
-                          animation: 'dance',
-                        )),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    CardForm(formContent: ['Email','Mot de passe'],textButton: 'Se connecter',type: 'login', ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Expanded(
-                            flex: 4,
-                            child: Divider(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onBackground,
-                              thickness: 1,
-                            )),
-                        Expanded(
-                            flex: 2,
-                            child: Text(
-                              'ou',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.button,
-                            )),
-                        Expanded(
-                            flex: 4,
-                            child: Divider(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onBackground,
-                              thickness: 1,
-                            )),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        FloatingActionButton(
-                          onPressed: () {
-                            print('facebook');
-                          },
-                          backgroundColor: Colors.blue.shade800,
-                          child: Icon(
-                            FontAwesomeIcons.facebookF,
-                            color: Colors.white,
-                          ),
-                          heroTag: null,
+                          child: AspectRatio(
+                              aspectRatio: 1.6,
+                              child: FlareActor(
+                                'assets/animations/dance.flr',
+                                alignment: Alignment.center,
+                                animation: 'dance',
+                              )),
                         ),
-                        FloatingActionButton(
-                            onPressed: () {
-                              auth.googleSignIn().catchError((e) {
-                                print(e);
-                                auth.showSnackBar(
-                                    'impossible de se connecter',
-                                    context);
-                              });
-                            },
-                            backgroundColor: Colors.red.shade700,
-                            child: Icon(
-                              FontAwesomeIcons.google,
-                              color: Colors.white,
-                            ),
-                            heroTag: null),
+                      ),
+                    ),
+                    Column(
+                      children: <Widget>[
+                        Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                              image: DecorationImage(
+                                  image: AssetImage('assets/img/vanlogo.png'),
+                                  fit: BoxFit.fitHeight)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            children: <Widget>[
+                              SizedBox(
+                                height: 5,
+                              ),
+                              CardForm(
+                                formContent: ['Email', 'Mot de passe'],
+                                textButton: 'Se connecter',
+                                type: 'login',
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Expanded(
+                                      flex: 4,
+                                      child: Divider(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onBackground,
+                                        thickness: 1,
+                                      )),
+                                  Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        'ou',
+                                        textAlign: TextAlign.center,
+                                        style:
+                                            Theme.of(context).textTheme.button,
+                                      )),
+                                  Expanded(
+                                      flex: 4,
+                                      child: Divider(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onBackground,
+                                        thickness: 1,
+                                      )),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 30,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: <Widget>[
+                                  FloatingActionButton(
+                                    onPressed: () {
+                                      print('facebook');
+                                    },
+                                    backgroundColor: Colors.blue.shade800,
+                                    child: Icon(
+                                      FontAwesomeIcons.facebookF,
+                                      color: Colors.white,
+                                    ),
+                                    heroTag: null,
+                                  ),
+                                  FloatingActionButton(
+                                      onPressed: () {
+                                        auth.googleSignIn().catchError((e) {
+                                          print(e);
+                                          auth.showSnackBar(
+                                              'impossible de se connecter',
+                                              context);
+                                        });
+                                      },
+                                      backgroundColor: Colors.red.shade700,
+                                      child: Icon(
+                                        FontAwesomeIcons.google,
+                                        color: Colors.white,
+                                      ),
+                                      heroTag: null),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 30,
+                              ),
+                              FlatButton(
+                                onPressed: () => ExtendedNavigator.of(context)
+                                    .pushNamed(Routes.signUp),
+                                child: Text(
+                                  'Pas de compte? S\'inscrire maintenant',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.button,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              FlatButton(
+                                onPressed: () => ExtendedNavigator.of(context)
+                                    .pushNamed(Routes.resetPassword),
+                                child: Text(
+                                  'Mot de passe oublier?',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.button,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-
-                    FlatButton(
-                      onPressed: () =>
-                          ExtendedNavigator.of(context).pushNamed(Routes.signUp),
-                      child: Text(
-                        'Pas de compte? S\'inscrire maintenant',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.button,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    FlatButton(
-                      onPressed: () =>
-                          ExtendedNavigator.of(context).pushNamed(Routes.resetPassword),
-                      child: Text(
-                        'Mot de passe oublier?',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.button,
-                      ),
                     ),
                   ],
                 ),
@@ -238,4 +264,3 @@ class _LoginState extends State<Login> {
 //    valueNotifier.value = false;
 //  }
 }
-

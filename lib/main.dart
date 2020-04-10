@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:auto_route/auto_route_annotations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +10,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vanevents/auth_widget.dart';
 import 'package:vanevents/auth_widget_builder.dart';
 import 'package:vanevents/routing/route.gr.dart';
+import 'package:vanevents/screens/login.dart';
+import 'package:vanevents/screens/walkthrough.dart';
 import 'package:vanevents/services/firebase_auth_service.dart';
 import 'package:vanevents/services/firestore_database.dart';
+import 'package:custom_splash/custom_splash.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +26,8 @@ void main() {
   });
 }
 
+AsyncSnapshot<FirebaseUser> userSnapshotStatic;
+
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
 
@@ -29,22 +35,22 @@ class MyApp extends StatelessWidget {
   // This is useful when mocking services while testing
   final FirebaseAuthService Function(BuildContext context) authServiceBuilder;
   final FirestoreDatabase Function(BuildContext context, String uid)
-  databaseBuilder;
+      databaseBuilder;
 
   MyApp({Key key, this.authServiceBuilder, this.databaseBuilder, this.prefs})
       : super(key: key);
 
   final ColorScheme colorScheme = ColorScheme(
-      primary: const Color(0xFFD32F2F),
-      primaryVariant: const Color(0xFFB71C1C),
-      secondary: const Color(0xFF1E88E5),
-      secondaryVariant: const Color(0xFF64B5F6),
-      background: const Color(0xFFFFCDD2),
+      primary: const Color(0xFF790e8b),
+      primaryVariant: const Color(0xFFdf78ef),
+      secondary: const Color(0xFF218b0e),
+      secondaryVariant: const Color(0xFF00600f),
+      background: const Color(0xFF790e8b),
       surface: const Color(0xFFFFFFFF),
-      onBackground: const Color(0xFF0D47A1),
-      error: const Color(0xFF5733FF),
+      onBackground: const Color(0xFFFFFFFF),
+      error: const Color(0xFF8b0e21),
       onError: const Color(0xFFFFFFFF),
-      onPrimary: const Color(0xFFFFFFFF),
+      onPrimary: const Color(0xFF000000),
       onSecondary: const Color(0xFFFFFFFF),
       onSurface: const Color(0xFF000000),
       brightness: Brightness.light);
@@ -62,6 +68,7 @@ class MyApp extends StatelessWidget {
           databaseBuilder: databaseBuilder,
           builder:
               (BuildContext context, AsyncSnapshot<FirebaseUser> userSnapshot) {
+            userSnapshotStatic = userSnapshot;
             return Material(
               child: MaterialApp(
                 debugShowCheckedModeBanner: false,
@@ -128,7 +135,7 @@ class MyApp extends StatelessWidget {
                         textTheme: ButtonTextTheme.primary,
                         splashColor: colorScheme.primary,
                         colorScheme: colorScheme,
-                        buttonColor: colorScheme.surface,
+                        buttonColor: colorScheme.secondary,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20))),
                     floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -140,10 +147,13 @@ class MyApp extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25))),
                     dividerColor: colorScheme.secondary),
-                home: AuthWidget(
-                    userSnapshot: userSnapshot,
-                    seenOnboarding: prefs.getBool('seen') ?? false),
-                builder: (ctx, nativeNavigator) => ExtendedNavigator<Router>(router: Router()),
+
+                builder: ExtendedNavigator<Router>(
+                  router: Router(),
+                  initialRouteArgs: AuthWidgetArguments(
+                      seenOnboarding: prefs.getBool('seen') ?? false),
+                ),
+
                 //onGenerateRoute: Router.onGenerateRoute,
 //                    prefs.getBool('seen') ?? false),
               ),
@@ -154,7 +164,7 @@ class MyApp extends StatelessWidget {
 }
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin();
 Firestore db = Firestore.instance;
 
 Future<dynamic> myBackgroundMessageHandler(Map<String, dynamic> message) {

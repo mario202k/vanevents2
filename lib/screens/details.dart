@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -237,7 +238,9 @@ class _DetailsState extends State<Details> {
           shape: StadiumBorder(),
           fillColor: Theme.of(context).colorScheme.primary,
           onPressed: () {
-            Router.navigator.pushNamed(Routes.formulaChoice,arguments: formulas);
+            ExtendedNavigator.of(context)
+                .pushNamed(Routes.formulaChoice,arguments: FormulaChoiceArguments(formulas: formulas) );
+
 
           }),
     );

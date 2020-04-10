@@ -2,12 +2,13 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:flutter_stripe_payment/flutter_stripe_payment.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:vanevents/models/formule.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
 import 'package:vanevents/models/participant.dart';
-
+import 'package:qr/qr.dart';
 
 class FormulaChoice extends StatefulWidget {
   final List<Formule> formulas;
@@ -44,8 +45,16 @@ class _FormulaChoiceState extends State<FormulaChoice> {
 
   double totalCost = 0;
 
+  final _stripePayment = FlutterStripePayment();
+
   @override
   void initState() {
+    _stripePayment.onCancel = () {
+      print("User Cancelled the Payment Method Form");
+    };
+    _stripePayment.setStripeSettings(
+        'pk_test_gPlqnEqiVydntTBkyFzc4aUb001o1vGwb6',
+        'merchant.com.vanina.vanevents');
 
 //    StripePayment.setOptions(
 //      StripeOptions(
@@ -429,6 +438,22 @@ class _FormulaChoiceState extends State<FormulaChoice> {
 //      }
 //  }
 
+  Future<List<bool>> _calc(List input) async {
+    final code = QrCode(input[0] as int, input[1] as int)
+      ..addData(input[2] as String)
+      ..make();
+
+    final squares = <bool>[];
+
+    for (var x = 0; x < code.moduleCount; x++) {
+      for (var y = 0; y < code.moduleCount; y++) {
+        squares.add(code.isDark(y, x));
+      }
+    }
+
+    return squares;
+  }
+
   _buildTotalContent() {
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -444,39 +469,205 @@ class _FormulaChoiceState extends State<FormulaChoice> {
               )),
           Flexible(
             flex: 1,
-            child: FloatingActionButton.extended(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              icon: Text(
-                'Continuer',
-                style: Theme.of(context).textTheme.button,
-              ),
-              label: Icon(
-                FontAwesomeIcons.creditCard,
-                color: Theme.of(context).colorScheme.onSecondary,
-              ),
-              onPressed: () {
-                if(allParticipantIsOk()){
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: 500),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return ScaleTransition(
+                  scale: animation,
+                  child: child,
+                );
+              },
+              child: !showSpinner
+                  ? FloatingActionButton.extended(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      icon: Text(
+                        'Continuer',
+                        style: Theme.of(context).textTheme.button,
+                      ),
+                      label: Icon(
+                        FontAwesomeIcons.creditCard,
+                        color: Theme.of(context).colorScheme.onSecondary,
+                      ),
+                      onPressed: () async {
+                        if (allParticipantIsOk()) {
 //                  checkIfNativePayReady();
-                  //createPaymentMethodNative();
-                }else{
+                          //createPaymentMethodNative();
 
-                  showSnackBar('Tous les participants ne sont pas valides', _scaffoldKey.currentState);
-                }
+                          String description = '';
 
+                          participants.forEach((participants) {
+                            description = description +
+                                participants.formule.title+
+                                ' pour ' +
+                                participants.nom +
+                                ' ' + participants.prenom +'\n';
+                          });
+
+                          print(description);
+                          var paymentResponse =
+                              await _stripePayment.addPaymentMethod();
+
+                          if (paymentResponse.status ==
+                              PaymentResponseStatus.succeeded) {
+                            print(paymentResponse.paymentMethodId);
+                            setState(() {
+                              showSpinner = true;
+                            });
+                            HttpsCallableResult intentResponse;
+                            try {
+                              final HttpsCallable callablePaymentIntent =
+                                  CloudFunctions.instance.getHttpsCallable(
+                                functionName: 'paymentIntent',
+                              );
+                              intentResponse = await callablePaymentIntent.call(
+                                <String, dynamic>{
+                                  'amount': totalCost * 100,
+                                  'description': description,
+                                  'paymentMethodId':
+                                      paymentResponse.paymentMethodId
+                                },
+                              );
+
+//      setState(() {
+//        _response = result.data['repeat_message'];
+//        _responseCount = result.data['repeat_count'];
+//      });
+                            } on CloudFunctionsException catch (e) {
+                              print('caught firebase functions exception');
+                              print(e.code);
+                              print(e.message);
+                              print(e.details);
+                              //case A
+
+                              setState(() {
+                                showSpinner = false;
+                              });
+
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) =>
+                                      ShowDialogToDismiss(
+                                          title: 'Error',
+                                          content:
+                                              'There was an error in creating the payment. Please try again with another card',
+                                          buttonText: 'CLOSE'));
+                              return;
+                            } catch (e) {
+                              print('caught generic exception');
+                              print(e);
+                              //case A
+
+                              setState(() {
+                                showSpinner = false;
+                              });
+
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) =>
+                                      ShowDialogToDismiss(
+                                          title: 'Error',
+                                          content:
+                                              'There was an error in creating the payment. Please try again with another card',
+                                          buttonText: 'CLOSE'));
+                              return;
+                            }
+
+                            final paymentIntentX = intentResponse.data;
+                            final status = paymentIntentX['status'];
+
+                            if (status == 'succeeded') {
+
+                              final qrCode = new QrCode(4, QrErrorCorrectLevel.L);
+                              qrCode.addData("Hello, world in QR form!");
+                              qrCode.make();
+
+
+
+                              //payment was confirmed by the server without need for futher authentification
+
+                              double amount = double.parse(
+                                  paymentIntentX['amount'].toString());
+
+                              amount = amount / 100;
+
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) =>
+                                      ShowDialogToDismiss(
+                                          title: 'Success',
+                                          content:
+                                              'Payment completed. $amount € succesfully charged',
+                                          buttonText: 'CLOSE'));
+
+                              setState(() {
+                                showSpinner = false;
+                              });
+                            } else {
+                              //step 4: there is a need to authenticate
+                              //StripePayment.setStripeAccount(strAccount);
+
+                              var intentResponse =
+                                  await _stripePayment.confirmPaymentIntent(
+                                      paymentIntentX['paymentIntent']
+                                          ['client_secret'],
+                                      paymentResponse.paymentMethodId,
+                                      totalCost);
+
+                              if (intentResponse.status ==
+                                  PaymentResponseStatus.succeeded) {
+                                print('payment OK');
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) =>
+                                        ShowDialogToDismiss(
+                                          title: 'Ok',
+                                          content: 'Payment ok',
+                                          buttonText: 'Fermer',
+                                        ));
+                              } else if (intentResponse.status ==
+                                  PaymentResponseStatus.failed) {
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) =>
+                                        ShowDialogToDismiss(
+                                          title: 'Error',
+                                          content: 'Payment failded',
+                                          buttonText: 'Fermer',
+                                        ));
+                              } else {
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) =>
+                                        ShowDialogToDismiss(
+                                          title: 'Error',
+                                          content: 'Payment failded',
+                                          buttonText: 'Fermer',
+                                        ));
+                              }
 
 //                print(participants.length);
 //                for (int i = 0; i < participants.length; i++) {
 //                  print(
 //                      '${participants[i].nom} ${participants[i].prenom} ${participants[i].index}');
 //                  print(participants[i].fbKey.currentState.validate());
-//                }
-              },
+                            }
+                          } else {
+                            setState(() {
+                              showSpinner = false;
+                            });
+                          }
+                        }
+                      })
+                  : CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary)),
             ),
           ),
         ],
       ),
     );
   }
+
   void showSnackBar(String val, ScaffoldState state) {
     state.showSnackBar(SnackBar(
         backgroundColor: Theme.of(context).colorScheme.error,
@@ -491,12 +682,12 @@ class _FormulaChoiceState extends State<FormulaChoice> {
 
   bool allParticipantIsOk() {
     bool b = true;
-    if(participants.length == 0){
+    if (participants.length == 0) {
       b = false;
     }
 
-    for(int i=0; i<participants.length;i++){
-      if(!participants[i].fbKey.currentState.validate()){
+    for (int i = 0; i < participants.length; i++) {
+      if (!participants[i].fbKey.currentState.validate()) {
         b = false;
         break;
       }
@@ -532,9 +723,6 @@ class _CardParticipantState extends State<CardParticipant> {
 
   @override
   Widget build(BuildContext context) {
-
-
-
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: Container(

@@ -11,8 +11,8 @@ class FirebaseAuthService {
   final StorageReference _storageReference = FirebaseStorage.instance.ref();
 
   Stream<FirebaseUser> get onAuthStateChanged {
-    return _firebaseAuth.onAuthStateChanged
-        .where((user) => user.isEmailVerified);
+
+    return _firebaseAuth.onAuthStateChanged;
 
   }
 

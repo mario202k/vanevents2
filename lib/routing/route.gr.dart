@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:vanevents/auth_widget.dart';
 import 'package:vanevents/screens/login.dart';
 import 'package:vanevents/screens/reset_password.dart';
 import 'package:vanevents/screens/sign_up.dart';
@@ -25,7 +26,8 @@ import 'package:vanevents/screens/formula_choice.dart';
 import 'package:vanevents/models/formule.dart';
 
 abstract class Routes {
-  static const login = '/';
+  static const authWidget = '/';
+  static const login = '/login';
   static const resetPassword = '/reset-password';
   static const signUp = '/sign-up';
   static const baseScreens = '/base-screens';
@@ -50,6 +52,16 @@ class Router extends RouterBase {
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
     switch (settings.name) {
+      case Routes.authWidget:
+        if (hasInvalidArgs<AuthWidgetArguments>(args)) {
+          return misTypedArgsRoute<AuthWidgetArguments>(args);
+        }
+        final typedArgs = args as AuthWidgetArguments ?? AuthWidgetArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => AuthWidget(
+              key: typedArgs.key, seenOnboarding: typedArgs.seenOnboarding),
+          settings: settings,
+        );
       case Routes.login:
         return MaterialPageRoute<dynamic>(
           builder: (_) => Login(),
@@ -66,30 +78,31 @@ class Router extends RouterBase {
           settings: settings,
         );
       case Routes.baseScreens:
-        if (hasInvalidArgs<String>(args)) {
-          return misTypedArgsRoute<String>(args);
+        if (hasInvalidArgs<BaseScreensArguments>(args)) {
+          return misTypedArgsRoute<BaseScreensArguments>(args);
         }
-        final typedArgs = args as String;
+        final typedArgs =
+            args as BaseScreensArguments ?? BaseScreensArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => BaseScreens(typedArgs),
+          builder: (_) => BaseScreens(typedArgs.uid),
           settings: settings,
         );
       case Routes.homeEvents:
-        if (hasInvalidArgs<GlobalKey<InnerDrawerState>>(args)) {
-          return misTypedArgsRoute<GlobalKey<InnerDrawerState>>(args);
+        if (hasInvalidArgs<HomeEventsArguments>(args)) {
+          return misTypedArgsRoute<HomeEventsArguments>(args);
         }
-        final typedArgs = args as GlobalKey<InnerDrawerState>;
+        final typedArgs = args as HomeEventsArguments ?? HomeEventsArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => HomeEvents(typedArgs),
+          builder: (_) => HomeEvents(typedArgs.innerDrawerKey),
           settings: settings,
         );
       case Routes.chat:
-        if (hasInvalidArgs<GlobalKey<InnerDrawerState>>(args)) {
-          return misTypedArgsRoute<GlobalKey<InnerDrawerState>>(args);
+        if (hasInvalidArgs<ChatArguments>(args)) {
+          return misTypedArgsRoute<ChatArguments>(args);
         }
-        final typedArgs = args as GlobalKey<InnerDrawerState>;
+        final typedArgs = args as ChatArguments ?? ChatArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => Chat(typedArgs),
+          builder: (_) => Chat(typedArgs.innerDrawerKey),
           settings: settings,
         );
       case Routes.chatRoom:
@@ -127,21 +140,22 @@ class Router extends RouterBase {
           settings: settings,
         );
       case Routes.details:
-        if (hasInvalidArgs<Event>(args)) {
-          return misTypedArgsRoute<Event>(args);
+        if (hasInvalidArgs<DetailsArguments>(args)) {
+          return misTypedArgsRoute<DetailsArguments>(args);
         }
-        final typedArgs = args as Event;
+        final typedArgs = args as DetailsArguments ?? DetailsArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => Details(typedArgs),
+          builder: (_) => Details(typedArgs.event),
           settings: settings,
         );
       case Routes.formulaChoice:
-        if (hasInvalidArgs<List<Formule>>(args)) {
-          return misTypedArgsRoute<List<Formule>>(args);
+        if (hasInvalidArgs<FormulaChoiceArguments>(args)) {
+          return misTypedArgsRoute<FormulaChoiceArguments>(args);
         }
-        final typedArgs = args as List<Formule>;
+        final typedArgs =
+            args as FormulaChoiceArguments ?? FormulaChoiceArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => FormulaChoice(typedArgs),
+          builder: (_) => FormulaChoice(typedArgs.formulas),
           settings: settings,
         );
       default:
@@ -153,6 +167,31 @@ class Router extends RouterBase {
 //**************************************************************************
 // Arguments holder classes
 //***************************************************************************
+
+//AuthWidget arguments holder class
+class AuthWidgetArguments {
+  final Key key;
+  final bool seenOnboarding;
+  AuthWidgetArguments({this.key, this.seenOnboarding});
+}
+
+//BaseScreens arguments holder class
+class BaseScreensArguments {
+  final String uid;
+  BaseScreensArguments({this.uid});
+}
+
+//HomeEvents arguments holder class
+class HomeEventsArguments {
+  final GlobalKey<InnerDrawerState> innerDrawerKey;
+  HomeEventsArguments({this.innerDrawerKey});
+}
+
+//Chat arguments holder class
+class ChatArguments {
+  final GlobalKey<InnerDrawerState> innerDrawerKey;
+  ChatArguments({this.innerDrawerKey});
+}
 
 //ChatRoom arguments holder class
 class ChatRoomArguments {
@@ -174,4 +213,16 @@ class FullPhotoArguments {
   final Key key;
   final String url;
   FullPhotoArguments({this.key, @required this.url});
+}
+
+//Details arguments holder class
+class DetailsArguments {
+  final Event event;
+  DetailsArguments({this.event});
+}
+
+//FormulaChoice arguments holder class
+class FormulaChoiceArguments {
+  final List<Formule> formulas;
+  FormulaChoiceArguments({this.formulas});
 }

@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:platform_alert_dialog/platform_alert_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:vanevents/services/firebase_auth_service.dart';
 import 'package:after_init/after_init.dart';
@@ -17,30 +22,40 @@ class CardForm extends StatefulWidget {
   _CardFormState createState() => _CardFormState();
 }
 
-class _CardFormState extends State<CardForm> with AfterInitMixin<CardForm> {
+class _CardFormState extends State<CardForm> {
   final GlobalKey<FormBuilderState> _fbKey = GlobalKey<FormBuilderState>();
   List<FocusScopeNode> _nodes;
   List<TextEditingController> _textEdit;
   GlobalKey key = GlobalKey();
   bool isDispose = false;
-  double height = 4.30;
+  double width = double.maxFinite;
   bool startAnimation = false;
   FirebaseAuthService auth;
+  bool obscureTextSignupConfirm = false;
 
-
+  File _image;
 
   _afterLayout(_) {
     if (!isDispose) {
-      setState(() {
-        height = _getSizes() / 56.5;
-      });
+      double width = _getSizes();
+      if (width != this.width) {
+        setState(() {
+          this.width = width;
+        });
+      }
     }
+  }
+
+  void togglePassword() {
+    setState(() {
+      obscureTextSignupConfirm = !obscureTextSignupConfirm;
+    });
   }
 
   double _getSizes() {
     final RenderBox renderBoxRed = key.currentContext.findRenderObject();
     final sizeRed = renderBoxRed.size;
-    return sizeRed.height;
+    return sizeRed.width;
   }
 
   @override
@@ -53,16 +68,20 @@ class _CardFormState extends State<CardForm> with AfterInitMixin<CardForm> {
         widget.formContent.length, (index) => TextEditingController());
 
     super.initState();
+//    SchedulerBinding.instance.addPostFrameCallback(_afterLayout());
   }
 
-
-  @override
-  void didInitState() {
-
-  }
+//
+//  @override
+//  void didInitState() {
+//
+//
+//  }
 
   @override
   void didUpdateWidget(CardForm oldWidget) {
+    print('didUpdateWidget!!!!');
+    //_afterLayout();
     WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
     super.didUpdateWidget(oldWidget);
   }
@@ -77,60 +96,188 @@ class _CardFormState extends State<CardForm> with AfterInitMixin<CardForm> {
 
   @override
   Widget build(BuildContext context) {
-
     auth = Provider.of<FirebaseAuthService>(context, listen: false);
+    print('build card form');
+    return LayoutBuilder(
+      builder: (context, constraints) {
 
-    return Padding(
-      padding: const EdgeInsets.all(18.0),
-      child: Stack(
-        children: <Widget>[
-          Card(
-            key: key,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: FormBuilder(
-                key: _fbKey,
-                autovalidate: false,
-                child: Column(children: List<Widget>.generate(
-                    widget.formContent.length, (index) => buildFormBuilder(index))),
+        return Stack(
+          children: <Widget>[
+            Column(
+              children: <Widget>[
+                Card(
+                  key: key,
+                  elevation: 0,
+                  color: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.secondary,
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(24.0)),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: FormBuilder(
+                      key: _fbKey,
+                      autovalidate: false,
+                      child: Column(
+                          children: List<Widget>.generate(
+                              widget.formContent.length,
+                              (index) => buildFormBuilder(
+                                  index, obscureTextSignupConfirm))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                )
+              ],
+            ),
+            Positioned(
+              bottom: 0,
+              width: constraints.maxWidth,
+              child: AnimatedSwitcher(
+                duration: Duration(milliseconds: 500),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return ScaleTransition(
+                    scale: animation,
+                    child: child,
+                  );
+                },
+                child: !startAnimation
+                    ? RaisedButton(
+
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(
+                            widget.textButton,
+                          ),
+                        ),
+                        onPressed: () {
+                          onSubmit();
+                        })
+                    : CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).colorScheme.primary)),
               ),
             ),
-          ),
-          FractionalTranslation(
-              translation: Offset(0.0, height),
-              child: Align(
-                alignment: FractionalOffset(0.5, 0.0),
-                child: AnimatedSwitcher(
-                  duration: Duration(milliseconds: 500),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                    return ScaleTransition(
-                      scale: animation,
-                      child: child,
-                    );
-                  },
-                  child: !startAnimation
-                      ? RaisedButton(
-                          color: Theme.of(context).colorScheme.primary,
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Text(
-                              widget.textButton,
-                            ),
-                          ),
-                          onPressed: () {
-                            onSubmit();
-                          })
-                      : CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              Theme.of(context).colorScheme.primary)),
-                ),
-              )),
-        ],
-      ),
+//          FractionalTranslation(
+//              translation: Offset(0.0, height),
+//              child: Align(
+//                alignment: FractionalOffset(0.5, 0.0),
+//                child: AnimatedSwitcher(
+//                  duration: Duration(milliseconds: 500),
+//                  transitionBuilder:
+//                      (Widget child, Animation<double> animation) {
+//                    return ScaleTransition(
+//                      scale: animation,
+//                      child: child,
+//                    );
+//                  },
+//                  child: !startAnimation
+//                      ? RaisedButton(
+//                          color: Theme.of(context).colorScheme.primary,
+//                          child: Padding(
+//                            padding: const EdgeInsets.all(12.0),
+//                            child: Text(
+//                              widget.textButton,
+//                            ),
+//                          ),
+//                          onPressed: () {
+//                            onSubmit();
+//                          })
+//                      : CircularProgressIndicator(
+//                          valueColor: AlwaysStoppedAnimation<Color>(
+//                              Theme.of(context).colorScheme.primary)),
+//                ),
+//              )),
+            widget.type == 'signup'
+                ? FractionalTranslation(
+                    translation: Offset(0.0, -0.5),
+                    child: Align(
+                      alignment: FractionalOffset(0.5, 0.0),
+                      child: FloatingActionButton(
+                        child: Icon(FontAwesomeIcons.calendar),
+                        onPressed: () {},
+                      ),
+//                    child: CircleAvatar(
+//                        backgroundImage: _image != null
+//                            ? FileImage(_image)
+//                            : AssetImage('assets/img/normal_user_icon.png'),
+//                        radius: 50,
+//                        child: RawMaterialButton(
+//                          shape: const CircleBorder(),
+//                          splashColor: Colors.black45,
+//                          onPressed: () {
+//                            showDialog<void>(
+//                              context: context,
+//                              builder: (BuildContext context) {
+//                                return PlatformAlertDialog(
+//                                  title: Text(
+//                                    'Source?',
+//                                    style: Theme.of(context).textTheme.display1,
+//                                  ),
+//                                  actions: <Widget>[
+//                                    PlatformDialogAction(
+//                                      child: Text(
+//                                        'Caméra',
+//                                        style: Theme.of(context)
+//                                            .textTheme
+//                                            .display1
+//                                            .copyWith(
+//                                                fontWeight: FontWeight.bold),
+//                                      ),
+//                                      onPressed: () {
+//                                        Navigator.of(context).pop();
+//                                        _getImageCamera();
+//                                      },
+//                                    ),
+//                                    PlatformDialogAction(
+//                                      child: Text(
+//                                        'Galerie',
+//                                        style: Theme.of(context)
+//                                            .textTheme
+//                                            .display1
+//                                            .copyWith(
+//                                                fontWeight: FontWeight.bold),
+//                                      ),
+//                                      //actionType: ActionType.,
+//                                      onPressed: () {
+//                                        Navigator.of(context).pop();
+//                                        _getImageGallery();
+//                                      },
+//                                    ),
+//                                  ],
+//                                );
+//                              },
+//                            );
+//                          },
+//                          padding: const EdgeInsets.all(50.0),
+//                        )),
+                    ),
+                  )
+                : SizedBox()
+          ],
+        );
+      }
     );
   }
 
+  Future _getImageGallery() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      _image = image;
+    });
+  }
+
+  Future _getImageCamera() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.camera);
+
+    setState(() {
+      _image = image;
+    });
+  }
 
   onSubmit() async {
     if (!_fbKey.currentState.validate()) {
@@ -158,15 +305,26 @@ class _CardFormState extends State<CardForm> with AfterInitMixin<CardForm> {
           });
         });
         break;
+      case 'signup':
+        if (_image != null) {
+          await auth.register(
+              _textEdit.elementAt(1).text, //email
+              _textEdit.elementAt(2).text, //mdp
+              _textEdit.elementAt(0).text, //nom
+              _image,
+              context);
+        } else {
+          auth.showSnackBar('Il manque une photo', context);
+        }
+        break;
     }
   }
 
-  Widget buildFormBuilder(int index) {
+  Widget buildFormBuilder(int index, bool obscureText) {
     TextInputType textInput;
     List<FormFieldValidator> validators = List<FormFieldValidator>();
     Icon icon;
     IconButton iconButton;
-    final toggle = Provider.of<ValueNotifier<bool>>(context, listen: false);
 
     switch (widget.formContent.elementAt(index)) {
       case 'Nom':
@@ -182,6 +340,7 @@ class _CardFormState extends State<CardForm> with AfterInitMixin<CardForm> {
             }
           },
         ];
+        obscureText = false;
         icon = Icon(
           FontAwesomeIcons.user,
           size: 22.0,
@@ -196,6 +355,7 @@ class _CardFormState extends State<CardForm> with AfterInitMixin<CardForm> {
           FormBuilderValidators.email(
               errorText: 'Veuillez saisir un Email valide'),
         ];
+        obscureText = false;
         icon = Icon(
           FontAwesomeIcons.at,
           size: 22.0,
@@ -218,21 +378,14 @@ class _CardFormState extends State<CardForm> with AfterInitMixin<CardForm> {
         icon = Icon(
           FontAwesomeIcons.key,
           size: 22.0,
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface,
+          color: Theme.of(context).colorScheme.onSurface,
         );
 
         iconButton = IconButton(
-          onPressed: (){
-            setState(() {
-              toggle.value = !toggle.value;
-
-            });
+          onPressed: () {
+            togglePassword();
           },
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface,
+          color: Theme.of(context).colorScheme.onSurface,
           iconSize: 20,
           icon: Icon(FontAwesomeIcons.eye),
         );
@@ -246,76 +399,73 @@ class _CardFormState extends State<CardForm> with AfterInitMixin<CardForm> {
               return 'Pas identique';
           },
         ];
+
         icon = Icon(
           FontAwesomeIcons.key,
           size: 22.0,
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface,
+          color: Theme.of(context).colorScheme.onSurface,
         );
 
         iconButton = IconButton(
-          onPressed: (){
-            setState(() {
-              toggle.value = !toggle.value;
-            });
+          onPressed: () {
+            togglePassword();
           },
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface,
+          color: Theme.of(context).colorScheme.onSurface,
           iconSize: 20,
           icon: Icon(FontAwesomeIcons.eye),
         );
         break;
     }
 
-
-
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
-      child: Consumer<ValueNotifier<bool>>(
+      padding: EdgeInsets.fromLTRB(
+          8,
+          widget.type == 'signup' &&
+                  widget.formContent.elementAt(index) == 'Nom'
+              ? 60
+              : 10,
+          8,
+          10),
+      child: FormBuilderTextField(
+        keyboardType: textInput,
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        cursorColor: Theme.of(context).colorScheme.onSurface,
+        attribute: widget.formContent.elementAt(index),
+        maxLines: 1,
+        obscureText: obscureText,
+        decoration: InputDecoration(
+            enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.onSurface, width: 2),
+                borderRadius: BorderRadius.circular(25.0)),
+            labelText: widget.formContent.elementAt(index),
+            labelStyle:
+                TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            border: InputBorder.none,
+            errorStyle:
+                TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            icon: icon,
+            suffixIcon: iconButton),
+        focusNode: _nodes.elementAt(index),
+        onEditingComplete: () {
+          String field = widget.formContent.elementAt(index);
+          if (_fbKey.currentState.fields[field].currentState.validate()) {
+            _nodes.elementAt(index).unfocus();
 
-        builder: (_,bool,__) => FormBuilderTextField(
-          keyboardType: textInput,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-          cursorColor: Theme.of(context).colorScheme.onSurface,
-          attribute: widget.formContent.elementAt(index),
-          maxLines: 1,
-          obscureText: bool.value ,
-          decoration: InputDecoration(
-              enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface, width: 2),
-                  borderRadius: BorderRadius.circular(25.0)),
-              labelText: widget.formContent.elementAt(index),
-              labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              border: InputBorder.none,
-              errorStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              icon: icon,
-          suffixIcon: iconButton),
-          focusNode: _nodes.elementAt(index),
-          onEditingComplete: () {
-
-            String field = widget.formContent.elementAt(index);
-            if (_fbKey.currentState.fields[field]
-                .currentState
-                .validate()) {
-              _nodes.elementAt(index).unfocus();
-
-              if (_nodes.length-1 != index) {
-                FocusScope.of(context).requestFocus(_nodes.elementAt(index + 1));
-              } else {
-                onSubmit();
-              }
+            if (_nodes.length - 1 != index) {
+              FocusScope.of(context).requestFocus(_nodes.elementAt(index + 1));
+            } else {
+              onSubmit();
             }
-          },
-          controller: _textEdit.elementAt(index),
-          onChanged: (val){
-            if (_textEdit.elementAt(index).text.length == 0) {
-              _textEdit.elementAt(index).clear();
-            }
-          },
-          validators: validators,
-        ),
+          }
+        },
+        controller: _textEdit.elementAt(index),
+        onChanged: (val) {
+          if (_textEdit.elementAt(index).text.length == 0) {
+            _textEdit.elementAt(index).clear();
+          }
+        },
+        validators: validators,
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:auto_route/auto_route.dart';
 import 'package:bubbled_navigation_bar/bubbled_navigation_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -142,7 +143,9 @@ class MySingletonFCM {
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
     }
-    await Router.navigator.pushNamed(Routes.baseScreens);
+    //await Router.navigator.pushNamed(Routes.baseScreens);
+    await ExtendedNavigator.of(context)
+        .pushNamed(Routes.baseScreens);
     //await Navigator.of(context).pushNamed(Router.baseScreens);
   }
 

@@ -7,13 +7,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:platform_alert_dialog/platform_alert_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:vanevents/services/firebase_auth_service.dart';
+import 'package:vanevents/shared/card_form.dart';
 
 class SignUp extends StatefulWidget {
   @override
   _SignUpState createState() => _SignUpState();
 }
 
-class _SignUpState extends State<SignUp> with WidgetsBindingObserver {
+class _SignUpState extends State<SignUp> {
   File _image;
 
   final double _heightContainer = 120;
@@ -55,27 +56,24 @@ class _SignUpState extends State<SignUp> with WidgetsBindingObserver {
 
   _afterLayout(_) {
     if (startAnimation == false) {
-      startAnimation = !startAnimation;
+      setState(() {
+        startAnimation = !startAnimation;
+      });
+
     }
 
-    setState(() {
-//      print(_getSizes());
-      _height = _getSizes() / 42.1;
-//      print(_height);
-    });
   }
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _afterLayout;
-    //WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
+    WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
+
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+
 //    _name.dispose();
 //    _email.dispose();
 //    _password.dispose();
@@ -107,11 +105,13 @@ class _SignUpState extends State<SignUp> with WidgetsBindingObserver {
 
   double _getSizes() {
     //WidgetsBinding.instance.addPostFrameCallback();
+    if(key.currentContext != null){
+      final RenderBox renderBoxRed = key.currentContext.findRenderObject();
+      final sizeRed = renderBoxRed.size;
 
-    final RenderBox renderBoxRed = key.currentContext.findRenderObject();
-    final sizeRed = renderBoxRed.size;
+      return sizeRed.height;
+    }
 
-    return sizeRed.height;
     //print("SIZE of Red: $sizeRed");
   }
 
@@ -136,7 +136,7 @@ class _SignUpState extends State<SignUp> with WidgetsBindingObserver {
 
 //    _auth = ModalRoute.of(context).settings.arguments;
 
-    WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
+
 
     return Scaffold(
       body: Container(
@@ -189,408 +189,7 @@ class _SignUpState extends State<SignUp> with WidgetsBindingObserver {
                       width: startAnimation
                           ? viewportConstraints.maxWidth - 50
                           : 0,
-                      child: Stack(
-                        children: <Widget>[
-                          Card(
-                            key: key,
-
-                            elevation: 10,
-//                      color: Colors.green,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25)),
-                            child: Container(
-                              padding: EdgeInsets.only(left: 20.0, right: 20.0),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(25),
-                                gradient: LinearGradient(colors: [
-                                  Theme.of(context).colorScheme.primary,
-                                  Theme.of(context).colorScheme.secondary
-                                ]),
-//                          color: Colors.blueAccent
-                              ),
-                              child: FormBuilder(
-                                onChanged: _onChanged,
-                                key: _fbKey,
-                                autovalidate: false,
-//                  readonly: true,
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      SizedBox(
-                                        height: 70,
-                                      ),
-                                      FormBuilderTextField(
-                                        focusNode: _nodeName,
-                                        onEditingComplete: () {
-                                          if (_fbKey.currentState
-                                              .fields['name'].currentState
-                                              .validate()) {
-                                            _nodeName.unfocus();
-                                            FocusScope.of(context)
-                                                .requestFocus(_nodeEmail);
-                                          }
-                                        },
-                                        controller: _name,
-                                        style:
-                                            Theme.of(context).textTheme.button,
-                                        cursorColor: Theme.of(context)
-                                            .colorScheme
-                                            .onPrimary,
-                                        attribute: 'name',
-                                        decoration: InputDecoration(
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onPrimary,
-                                                  width: 2),
-                                              borderRadius:
-                                                  BorderRadius.circular(25.0)),
-                                          labelText: 'Nom',
-                                          labelStyle: Theme.of(context)
-                                              .textTheme
-                                              .button,
-                                          border: InputBorder.none,
-                                          icon: Icon(
-                                            FontAwesomeIcons.user,
-                                            size: 22.0,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary,
-                                          ),
-                                          errorStyle: Theme.of(context)
-                                              .textTheme
-                                              .button,
-                                        ),
-                                        onChanged: _onChanged,
-                                        validators: [
-                                          FormBuilderValidators.required(
-                                              errorText: 'Champs requis'),
-                                          (val) {
-                                            RegExp regex = new RegExp(
-                                                r'^[a-zA-Z0-9][a-zA-Z0-9_]{2,15}$');
-                                            if (regex.allMatches(val).length ==
-                                                0) {
-                                              return 'Entre 2 et 15, ';
-                                            }
-                                          }
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: 20,
-                                      ),
-                                      FormBuilderTextField(
-                                        focusNode: _nodeEmail,
-                                        onEditingComplete: () {
-                                          if (_fbKey.currentState
-                                              .fields['email'].currentState
-                                              .validate()) {
-                                            _nodeEmail.unfocus();
-                                            FocusScope.of(context)
-                                                .requestFocus(_nodePassword);
-                                          }
-                                        },
-                                        controller: _email,
-                                        keyboardType:
-                                            TextInputType.emailAddress,
-                                        style:
-                                            Theme.of(context).textTheme.button,
-                                        cursorColor: Theme.of(context)
-                                            .colorScheme
-                                            .onPrimary,
-                                        attribute: 'email',
-                                        decoration: InputDecoration(
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onPrimary,
-                                                  width: 2),
-                                              borderRadius:
-                                                  BorderRadius.circular(25.0)),
-                                          labelText: 'Email',
-                                          labelStyle: Theme.of(context)
-                                              .textTheme
-                                              .button,
-                                          border: InputBorder.none,
-                                          icon: Icon(
-                                            FontAwesomeIcons.at,
-                                            size: 22.0,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary,
-                                          ),
-                                          errorStyle: Theme.of(context)
-                                              .textTheme
-                                              .caption,
-                                        ),
-                                        validators: [
-                                          FormBuilderValidators.required(
-                                              errorText: 'Champs requis'),
-                                          FormBuilderValidators.email(
-                                              errorText:
-                                                  'Veuillez saisir un Email valide'),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: 20,
-                                      ),
-                                      FormBuilderTextField(
-                                        focusNode: _nodePassword,
-                                        onEditingComplete: () {
-                                          if (_fbKey.currentState
-                                              .fields['mot de passe'].currentState
-                                              .validate()) {
-                                            _nodePassword.unfocus();
-                                            FocusScope.of(context)
-                                                .requestFocus(_nodeConfirmation);
-                                          }
-                                        },
-                                        controller: _password,
-                                        style:
-                                            Theme.of(context).textTheme.button,
-                                        cursorColor: Theme.of(context)
-                                            .colorScheme
-                                            .onPrimary,
-                                        attribute: 'mot de passe',
-                                        maxLines: 1,
-                                        obscureText: _obscureTextSignupConfirm,
-                                        decoration: InputDecoration(
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onPrimary,
-                                                  width: 2),
-                                              borderRadius:
-                                                  BorderRadius.circular(25.0)),
-                                          labelText: 'Mot de passe',
-                                          labelStyle: Theme.of(context)
-                                              .textTheme
-                                              .button,
-                                          border: InputBorder.none,
-                                          icon: Icon(
-                                            FontAwesomeIcons.key,
-                                            size: 22.0,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary,
-                                          ),
-                                          suffixIcon: IconButton(
-                                            onPressed: _togglePassword,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary,
-                                            iconSize: 20,
-                                            icon: Icon(FontAwesomeIcons.eye),
-                                          ),
-                                          errorStyle: Theme.of(context)
-                                              .textTheme
-                                              .button,
-                                        ),
-                                        onChanged: _onChanged,
-                                        validators: [
-                                          /*Strong passwords with min 8 - max 15 character length, at least one uppercase letter, one lowercase letter, one number, one special character (all, not just defined), space is not allowed.*/
-
-                                          (val) {
-                                            RegExp regex = new RegExp(
-                                                r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d.*)[a-zA-Z0-9\S]{8,15}$');
-                                            if (regex.allMatches(val).length ==
-                                                0) {
-                                              return 'Entre 8 et 15, 1 majuscule, 1 minuscule, 1 chiffre';
-                                            }
-                                          }
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: 20,
-                                      ),
-                                      FormBuilderTextField(
-                                        focusNode: _nodeConfirmation,
-                                        onEditingComplete: () {
-                                          if (_fbKey.currentState
-                                              .fields['email'].currentState
-                                              .validate()) {
-                                            _nodeEmail.unfocus();
-                                            FocusScope.of(context)
-                                                .requestFocus(_nodePassword);
-                                          }
-                                        },
-                                        controller: _confirmation,
-                                        style:
-                                            Theme.of(context).textTheme.button,
-                                        cursorColor: Theme.of(context)
-                                            .colorScheme
-                                            .onPrimary,
-                                        attribute: 'confirmation',
-                                        maxLines: 1,
-                                        obscureText: _obscureTextSignupConfirm,
-                                        decoration: InputDecoration(
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onPrimary,
-                                                  width: 2),
-                                              borderRadius:
-                                                  BorderRadius.circular(25.0)),
-                                          labelText: 'Confirmation',
-                                          labelStyle: Theme.of(context)
-                                              .textTheme
-                                              .button,
-                                          border: InputBorder.none,
-                                          icon: Icon(
-                                            FontAwesomeIcons.key,
-                                            size: 22.0,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary,
-                                          ),
-                                          errorStyle: Theme.of(context)
-                                              .textTheme
-                                              .button,
-                                          suffixIcon: IconButton(
-                                            onPressed: _togglePassword,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary,
-                                            iconSize: 20,
-                                            icon: Icon(FontAwesomeIcons.eye),
-                                          ),
-                                        ),
-                                        onChanged: _onChanged,
-                                        validators: [
-                                          (val) {
-                                            if (_password.text != val)
-                                              return 'Pas identique';
-                                          },
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: 70,
-                                      ),
-                                    ]),
-                              ),
-                            ),
-                          ),
-                          FractionalTranslation(
-                            translation: Offset(0.0, -0.5),
-                            child: Align(
-                              alignment: FractionalOffset(0.5, 0.0),
-                              child: CircleAvatar(
-                                  backgroundImage: _image != null
-                                      ? FileImage(_image)
-                                      : AssetImage(
-                                          'assets/img/normal_user_icon.png'),
-                                  radius: 50,
-                                  child: RawMaterialButton(
-                                    shape: const CircleBorder(),
-                                    splashColor: Colors.black45,
-                                    onPressed: () {
-                                      showDialog<void>(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return PlatformAlertDialog(
-                                            title: Text(
-                                              'Source?',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .display1,
-                                            ),
-                                            actions: <Widget>[
-                                              PlatformDialogAction(
-                                                child: Text(
-                                                  'Caméra',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .display1
-                                                      .copyWith(
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                  _getImageCamera();
-                                                },
-                                              ),
-                                              PlatformDialogAction(
-                                                child: Text(
-                                                  'Galerie',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .display1
-                                                      .copyWith(
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                ),
-                                                //actionType: ActionType.,
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                  _getImageGallery();
-                                                },
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    },
-                                    padding: const EdgeInsets.all(50.0),
-                                  )),
-                            ),
-                          ),
-                          FractionalTranslation(
-                            translation: Offset(
-                              0.0,
-                              _height,
-                            ),
-                            child: Align(
-                                alignment: FractionalOffset(0.5, 0.0),
-                                child: ProgressButton(
-                                  color: Theme.of(context).colorScheme.surface,
-                                  borderRadius: 20,
-                                    width: viewportConstraints.maxWidth*0.6,
-
-                                    defaultWidget: Text(
-                                      'S\'inscrire',
-                                      style:
-                                          Theme.of(context).textTheme.display2,
-                                    ),
-                                type: ProgressButtonType.Raised,
-                                    progressWidget: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary)),
-
-                                    onPressed: () async{
-                                      _fbKey.currentState.save();
-                                      if (_fbKey.currentState.validate()) {
-                                        print(_fbKey.currentState.value);
-                                        if (_image != null) {
-                                          await auth
-                                              .register(
-                                                  _email.text,
-                                                  _password.text,
-                                                  _name.text,
-                                                  _image,
-                                                  context)
-                                              .then((str) {
-                                                print('!!!$str!!!');
-                                          });
-                                          //Navigator.pop(context);
-                                        } else {
-                                          showSnackBar(
-                                              'Il manque une photo', context);
-                                        }
-                                      } else {
-                                        print(_fbKey.currentState.value);
-                                        showSnackBar(
-                                            "formulaire non valide", context);
-                                      }
-                                    })),
-                          ),
-
-                        ],
-                      ),
+                      child: CardForm(formContent: ['Nom','Email','Mot de passe','Confirmation'],textButton: 'S\'inscrire',type: 'signup', ),
                     ),
                   ),
                   ClipPath(

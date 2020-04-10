@@ -25,8 +25,9 @@ class AuthWidgetBuilder extends StatelessWidget {
     return StreamBuilder<FirebaseUser>(
       stream: authService.onAuthStateChanged,
       builder: (BuildContext context, AsyncSnapshot<FirebaseUser> snapshot) {
+
         final FirebaseUser user = snapshot.data;
-        if (user != null) {
+        if (user != null && user.isEmailVerified) {
 
           databaseBuilder(context, user.uid).createUserOnDatabase(user);
 

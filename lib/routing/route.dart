@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route_annotations.dart';
+import 'package:vanevents/auth_widget.dart';
 import 'package:vanevents/screens/base_screen.dart';
 import 'package:vanevents/screens/chat.dart';
 import 'package:vanevents/screens/chat_room.dart';
@@ -17,6 +18,8 @@ import 'package:vanevents/screens/upload_event.dart';
 class $Router {
 //flutter packages pub run build_runner build
   @initial
+  AuthWidget authWidget;
+
   Login login;
 
   ResetPassword resetPassword;
@@ -42,6 +45,4 @@ class $Router {
   Details details;
 
   FormulaChoice formulaChoice;
-
-
 }
