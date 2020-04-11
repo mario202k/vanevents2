@@ -93,7 +93,8 @@ class _HomeEventsState extends State<HomeEvents> {
                             );
                           }
 
-                          List<Event> eventsList = snap.data;
+                          events.clear();
+                          events.addAll(snap.data);
                           double width = constraints.maxWidth * 0.9;
 
                           return Hero(
@@ -103,12 +104,12 @@ class _HomeEventsState extends State<HomeEvents> {
                                     itemBuilder:
                                         (BuildContext context, int index) {
                                       return Image.network(
-                                        eventsList[index].imageUrl,
+                                        events[index].imageUrl,
                                         fit: BoxFit.fill,
                                         height: 700,
                                       );
                                     },
-                                    itemCount: eventsList.length,
+                                    itemCount: events.length,
                                     pagination: SwiperPagination(),
                                     control: SwiperControl(
                                       color: Theme.of(context)
@@ -120,17 +121,8 @@ class _HomeEventsState extends State<HomeEvents> {
                                           Routes.details,
                                           arguments: DetailsArguments(
                                               event:
-                                                  eventsList.elementAt(index)));
+                                                  events.elementAt(index)));
 
-//                                      Router.navigator.pushNamed(Routes.details,arguments:
-//                                      eventsList.elementAt(index));
-
-//                                      Navigator.of(context).pushNamed(
-//                                          Router.details,
-//                                          arguments:
-//                                              eventsList.elementAt(index));
-//                                      Navigator.pushNamed(context, '/details',
-//                                          arguments: events[index]);
                                     },
                                     itemWidth: width,
                                     itemHeight: (width * 6) / 4.25,

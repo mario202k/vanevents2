@@ -15,6 +15,10 @@ import 'package:vanevents/shared/indicator.dart';
 import 'package:vanevents/shared/topAppBar.dart';
 
 class UploadEvent extends StatefulWidget {
+
+  final String idEvent;
+  UploadEvent({this.idEvent});
+
   @override
   _UploadEventState createState() => _UploadEventState();
 }
@@ -70,6 +74,9 @@ class _UploadEventState extends State<UploadEvent> {
 
   @override
   void initState() {
+//    if(widget.idEvent )
+//    final db = Provider.of<FirestoreDatabase>(context, listen: false);
+
     addFormule();
 
     super.initState();

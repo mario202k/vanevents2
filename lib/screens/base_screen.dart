@@ -185,7 +185,7 @@ class BaseScreens extends StatefulWidget {
     'Mes billets',
     'Inviter un ami',
     'Paramètres',
-    'Upload Event',
+    'Admin Events',
   ];
 
   final iconsInnerDrawer = [
@@ -210,7 +210,7 @@ class BaseScreens extends StatefulWidget {
       size: 22,
     ),
     Icon(
-      FontAwesomeIcons.upload,
+      FontAwesomeIcons.superpowers,
       color: Colors.white,
       size: 22,
     ),
@@ -681,10 +681,8 @@ class _BaseScreensState extends State<BaseScreens> {
                                                     moveTo(2);
                                                     break;
                                                   case 4:
-                                                    Router.navigator.pushNamed(Routes.uploadEvent);
-//                                                    Navigator.of(context)
-//                                                        .pushNamed(
-//                                                            Router.uploadEvent);
+                                                    ExtendedNavigator.of(context)
+                                                        .pushNamed(Routes.adminEvents);
                                                     break;
                                                 }
                                               }, // reverse bool value
@@ -777,7 +775,7 @@ class _BaseScreensState extends State<BaseScreens> {
                 return BubbledNavigationBarItem(
                   icon: getIcon(index, color),
                   activeIcon: getIcon(index, Colors.white),
-                  bubbleColor: color,
+                  bubbleColor: Theme.of(context).colorScheme.primary,
                   title: Text(
                     title,
                     style: TextStyle(color: Colors.white, fontSize: 12),

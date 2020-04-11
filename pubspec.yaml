@@ -60,6 +60,9 @@ dependencies:
   custom_splash: ^0.0.2
   flutter_stripe_payment: ^0.0.12
   qr_flutter: ^3.1.0
+  flutter_slidable: ^0.5.4
+  screen: ^0.0.5
+  majascan: ^0.3.6
 dev_dependencies:
   auto_route_generator: ^0.4.0
   build_runner: ^1.8.0

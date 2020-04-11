@@ -3,6 +3,7 @@ import 'package:vanevents/models/participant.dart';
 
 class Ticket{
   final String id;
+  final String status;
   final String uid;
   final String eventId;
   final int nbParticipants;
@@ -11,12 +12,13 @@ class Ticket{
   final DateTime dateTime;
   final int receiptNumber;
 
-  Ticket({this.id,this.uid, this.eventId, this.nbParticipants, this.participant,
+  Ticket({this.id,this.status,this.uid, this.eventId, this.nbParticipants, this.participant,
       this.amount, this.dateTime, this.receiptNumber});
 
   Map<String, dynamic> toMap() {
     return {
       'id': this.id,
+      'status':this.status,
       'uid': this.uid,
       'eventId': this.eventId,
       'nbParticipants': this.nbParticipants,
@@ -30,8 +32,9 @@ class Ticket{
   factory Ticket.fromMap(Map<String, dynamic> map) {
     Timestamp time = map['dateTime'] ?? '';
 
-    return new Ticket(
+    return Ticket(
       id: map['id'] as String,
+      status: map['status'] as String,
       uid: map['uid'] as String,
       eventId: map['eventId'] as String,
       nbParticipants: map['nbParticipants'] as int,

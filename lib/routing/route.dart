@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route_annotations.dart';
 import 'package:vanevents/auth_widget.dart';
+import 'package:vanevents/screens/admin_event.dart';
 import 'package:vanevents/screens/base_screen.dart';
 import 'package:vanevents/screens/chat.dart';
 import 'package:vanevents/screens/chat_room.dart';
@@ -9,6 +10,8 @@ import 'package:vanevents/screens/full_photo.dart';
 import 'package:vanevents/screens/home_events.dart';
 import 'package:vanevents/screens/login.dart';
 import 'package:vanevents/screens/profile.dart';
+import 'package:vanevents/screens/qr_code.dart';
+import 'package:vanevents/screens/qr_code_scanner.dart';
 import 'package:vanevents/screens/reset_password.dart';
 import 'package:vanevents/screens/sign_up.dart';
 import 'package:vanevents/screens/tickets.dart';
@@ -45,4 +48,10 @@ class $Router {
   Details details;
 
   FormulaChoice formulaChoice;
+
+  QrCode qrCode;
+
+  QrCodeScanner qrCodeScanner;
+
+  AdminEvents adminEvents;
 }

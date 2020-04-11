@@ -583,6 +583,7 @@ class _FormulaChoiceState extends State<FormulaChoice> {
 
                               Ticket ticket = Ticket(
                                   id: paymentIntentX['id'],
+                                  status: 'En attente',
                                   uid: user.id,
                                   eventId: widget.eventId,
                                   nbParticipants: participants.length,

@@ -24,6 +24,9 @@ import 'package:vanevents/screens/details.dart';
 import 'package:vanevents/models/event.dart';
 import 'package:vanevents/screens/formula_choice.dart';
 import 'package:vanevents/models/formule.dart';
+import 'package:vanevents/screens/qr_code.dart';
+import 'package:vanevents/screens/qr_code_scanner.dart';
+import 'package:vanevents/screens/admin_event.dart';
 
 abstract class Routes {
   static const authWidget = '/';
@@ -40,6 +43,9 @@ abstract class Routes {
   static const uploadEvent = '/upload-event';
   static const details = '/details';
   static const formulaChoice = '/formula-choice';
+  static const qrCode = '/qr-code';
+  static const qrCodeScanner = '/qr-code-scanner';
+  static const adminEvents = '/admin-events';
 }
 
 class Router extends RouterBase {
@@ -130,13 +136,23 @@ class Router extends RouterBase {
           settings: settings,
         );
       case Routes.tickets:
+        if (hasInvalidArgs<TicketsArguments>(args)) {
+          return misTypedArgsRoute<TicketsArguments>(args);
+        }
+        final typedArgs = args as TicketsArguments ?? TicketsArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => Tickets(),
+          builder: (_) => Tickets(
+              key: typedArgs.key, innerDrawerKey: typedArgs.innerDrawerKey),
           settings: settings,
         );
       case Routes.uploadEvent:
+        if (hasInvalidArgs<UploadEventArguments>(args)) {
+          return misTypedArgsRoute<UploadEventArguments>(args);
+        }
+        final typedArgs =
+            args as UploadEventArguments ?? UploadEventArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => UploadEvent(),
+          builder: (_) => UploadEvent(idEvent: typedArgs.idEvent),
           settings: settings,
         );
       case Routes.details:
@@ -156,6 +172,25 @@ class Router extends RouterBase {
             args as FormulaChoiceArguments ?? FormulaChoiceArguments();
         return MaterialPageRoute<dynamic>(
           builder: (_) => FormulaChoice(typedArgs.formulas, typedArgs.eventId),
+          settings: settings,
+        );
+      case Routes.qrCode:
+        if (hasInvalidArgs<QrCodeArguments>(args)) {
+          return misTypedArgsRoute<QrCodeArguments>(args);
+        }
+        final typedArgs = args as QrCodeArguments ?? QrCodeArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => QrCode(typedArgs.data),
+          settings: settings,
+        );
+      case Routes.qrCodeScanner:
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => QrCodeScanner(),
+          settings: settings,
+        );
+      case Routes.adminEvents:
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => AdminEvents(),
           settings: settings,
         );
       default:
@@ -215,6 +250,19 @@ class FullPhotoArguments {
   FullPhotoArguments({this.key, @required this.url});
 }
 
+//Tickets arguments holder class
+class TicketsArguments {
+  final Key key;
+  final GlobalKey<InnerDrawerState> innerDrawerKey;
+  TicketsArguments({this.key, this.innerDrawerKey});
+}
+
+//UploadEvent arguments holder class
+class UploadEventArguments {
+  final String idEvent;
+  UploadEventArguments({this.idEvent});
+}
+
 //Details arguments holder class
 class DetailsArguments {
   final Event event;
@@ -226,4 +274,10 @@ class FormulaChoiceArguments {
   final List<Formule> formulas;
   final String eventId;
   FormulaChoiceArguments({this.formulas, this.eventId});
+}
+
+//QrCode arguments holder class
+class QrCodeArguments {
+  final String data;
+  QrCodeArguments({this.data});
 }

@@ -30,10 +30,12 @@ class _DetailsState extends State<Details> {
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     final db = Provider.of<FirestoreDatabase>(context, listen: false);
     participants = db.participantsStream(widget.event.id);
-    db.getFormulasList(widget.event.id).then((form){formulas = form;});
+    db.getFormulasList(widget.event.id).then((form) {
+      formulas = form;
+    });
 
     return Scaffold(
       body: NestedScrollView(
@@ -65,9 +67,10 @@ class _DetailsState extends State<Details> {
                 background: Hero(
                     tag: '123',
                     child: Image(
-                      image: widget.event.imageProvider,
+                      image: NetworkImage(widget.event.imageUrl),
                       fit: BoxFit.cover,
-                    )),
+                    )
+                ),
               ),
             ),
           ];
@@ -91,7 +94,7 @@ class _DetailsState extends State<Details> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                        "${DateFormat('dd/MM/yyyy').format(widget.event.dateDebut.toDate())} à : ${widget.event.dateDebut.toDate().hour}:${widget.event.dateDebut.toDate().minute}"),
+                        "${DateFormat('dd/MM/yyyy').format(widget.event.dateDebut)} à : ${widget.event.dateDebut.hour}:${widget.event.dateDebut.minute}"),
                   ),
                 ],
               ),
@@ -238,10 +241,9 @@ class _DetailsState extends State<Details> {
           shape: StadiumBorder(),
           fillColor: Theme.of(context).colorScheme.primary,
           onPressed: () {
-            ExtendedNavigator.of(context)
-                .pushNamed(Routes.formulaChoice,arguments: FormulaChoiceArguments(formulas: formulas, eventId: widget.event.id) );
-
-
+            ExtendedNavigator.of(context).pushNamed(Routes.formulaChoice,
+                arguments: FormulaChoiceArguments(
+                    formulas: formulas, eventId: widget.event.id));
           }),
     );
   }

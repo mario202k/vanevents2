@@ -429,4 +429,14 @@ class FirestoreDatabase {
         .map((docs) =>
             docs.documents.map((doc) => Ticket.fromMap(doc.data)).toList());
   }
+
+  Stream<Ticket> streamTicket(String data) {
+    return _db
+        .collection('tickets')
+        .where('id', isEqualTo: data)
+        .snapshots()
+        .map((docs) =>
+            docs.documents.map((doc) => Ticket.fromMap(doc.data)).first);
+  }
+
 }
