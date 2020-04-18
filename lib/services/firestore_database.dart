@@ -40,23 +40,37 @@ class FirestoreDatabase {
         builder: (data, documentId) => User.fromMap(data, documentId),
       );
 
+  Stream<List<User>> usersStream() => _service.collectionStream(
+        path: FirestorePath.users(),
+        builder: (data, documentId) => User.fromMap(data, documentId),
+      );
+
   Stream<List<Event>> eventsStream() => _service.collectionStream(
       path: FirestorePath.events(),
       builder: (data, documentId) => Event.fromMap(data, documentId));
 
+  Stream<Event> eventStream(String id) => _service.documentStream(
+      path: FirestorePath.event(id),
+      builder: (data, documentId) => Event.fromMap(data, documentId));
+
   //afin d'obtenir tous les autres donc sauf moi
-  Stream<List<User>> usersStream1() => _service.collectionStream(
+  Stream<List<User>> usersStreamChat1() => _service.collectionStream(
       path: FirestorePath.users(),
       builder: (data, documentId) => User.fromMap(data, documentId),
       queryBuilder: (query) => query
           .where('id', isGreaterThan: uid)
-          .where('chat', arrayContains: uid));
+          .where('chat', arrayContains : uid)
+      //.where('chatId.$uid', isLessThan : '\uf8ff')
+      );
 
-  Stream<List<User>> usersStream2() => _service.collectionStream(
+  Stream<List<User>> usersStreamChat2() => _service.collectionStream(
       path: FirestorePath.users(),
       builder: (data, documentId) => User.fromMap(data, documentId),
-      queryBuilder: (query) =>
-          query.where('id', isLessThan: uid).where('chat', arrayContains: uid));
+      queryBuilder: (query) => query
+          .where('id', isLessThan: uid)
+          .where('chat', arrayContains : uid)
+      //.where('chatId.$uid', isLessThan : '\uf8ff')
+      );
 
   Stream<Message> getLastChatMessage(String chatId) {
     return _db
@@ -176,24 +190,20 @@ class FirestoreDatabase {
   }
 
   Future<String> creationChatRoom(String idFriend) async {
-    String idChatRoom = '';
+    String idChatRoom;
 
-    await _db
-        .collection('users')
-        .where('id', isEqualTo: uid)
-        .where('chat', arrayContains: idFriend)
-        .limit(1)
-        .getDocuments()
-        .then((docs) async {
-      if (docs.documents.isNotEmpty) {
-        idChatRoom = User.fromMap(docs.documents.elementAt(0).data, uid)
-            .chatId[idFriend]
-            .toString();
-      } else {
+    await _db.collection('users').document(uid).get().then((doc)async{
+      Map map = User.fromMap(doc.data, doc.documentID).chatId;
+      if(map != null){
+        idChatRoom = map[idFriend];
+      }
+      if (idChatRoom == null) {
+        print('creation chat room');
         //creation id chat
         //création d'un chatRoom
         DocumentReference chatRoom = _db.collection('chats').document();
         idChatRoom = chatRoom.documentID;
+
         await _db.collection('chats').document(idChatRoom).setData({
           'id': idChatRoom,
           'createdAt': DateTime.now(),
@@ -201,18 +211,15 @@ class FirestoreDatabase {
         //Partage de l'ID chat room
         await _db.collection('users').document(uid).updateData({
           'chat': FieldValue.arrayUnion([idFriend]),
-          'chatId': FieldValue.arrayUnion([
-            {idFriend: idChatRoom}
-          ])
+          'chatId': {idFriend: idChatRoom}
         });
         await _db.collection('users').document(idFriend).updateData({
           'chat': FieldValue.arrayUnion([uid]),
-          'chatId': FieldValue.arrayUnion([
-            {uid: idChatRoom}
-          ])
+          'chatId': {uid: idChatRoom}
         });
       }
-    });
+    }).catchError((err)=>print(err));
+
     return idChatRoom;
   }
 
@@ -233,7 +240,7 @@ class FirestoreDatabase {
     });
   }
 
-  void uploadEvent(
+  Future uploadEvent(
       DateTime dateDebut,
       DateTime dateFin,
       String adresse,
@@ -241,7 +248,7 @@ class FirestoreDatabase {
       String description,
       File image,
       List<Formule> formules,
-      BuildContext context) {
+      BuildContext context) async {
     //création du path pour le flyer
     String path = image.path.substring(image.path.lastIndexOf('/') + 1);
 
@@ -251,21 +258,22 @@ class FirestoreDatabase {
         .child("/$path")
         .putFile(image);
 
-    uploadImage(uploadTask).then((url) {
+    await uploadImage(uploadTask).then((url) async {
       DocumentReference reference = _db.collection("events").document();
       String idEvent = reference.documentID;
 
-      _db.collection("events").document(idEvent).setData({
+      await _db.collection("events").document(idEvent).setData({
         "id": idEvent,
         "dateDebut": dateDebut,
         "dateFin": dateFin,
         "adresse": adresse,
         "titre": titre,
+        'status': 'En attente',
         "description": description,
         "imageUrl": url,
         "participants": [],
-      }, merge: true).then((_) {
-        formules.forEach((f) {
+      }, merge: true).then((_) async {
+        formules.forEach((f) async {
           DocumentReference reference = _db
               .collection("events")
               .document(idEvent)
@@ -273,7 +281,7 @@ class FirestoreDatabase {
               .document();
           String idFormule = reference.documentID;
 
-          _db
+          await _db
               .collection("events")
               .document(idEvent)
               .collection("formules")
@@ -285,9 +293,9 @@ class FirestoreDatabase {
             "nb": f.nombreDePersonne,
           }, merge: true);
         });
-      }).then((_) {
+      }).then((_) async {
         //création du chat room
-        _db
+        await _db
             .collection("chats")
             .document(idEvent)
             .setData({'createdAt': DateTime.now(), 'id': idEvent}, merge: true);
@@ -331,10 +339,6 @@ class FirestoreDatabase {
           'lastActivity': DateTime.now(),
           'provider': user.providerId,
           'isLogin': false,
-          'attendTo': [],
-          'tickets': [],
-          'chat': [],
-          'chatId': {}
         }, merge: true);
       }
     });
@@ -372,10 +376,6 @@ class FirestoreDatabase {
           'lastActivity': DateTime.now(),
           'provider': user.providerId,
           'isLogin': false,
-          'attendTo': [],
-          'tickets': [],
-          'chat': [],
-          'chatId': {}
         }, merge: true);
       }
     });
@@ -439,4 +439,14 @@ class FirestoreDatabase {
             docs.documents.map((doc) => Ticket.fromMap(doc.data)).first);
   }
 
+  Future<List<Formule>> formuleList(String eventId) async {
+    return await _db
+        .collection('events')
+        .document(eventId)
+        .collection('formules')
+        .getDocuments()
+        .then((docs) => docs.documents
+            .map((doc) => Formule.fromMap(doc.data, doc.documentID))
+            .toList());
+  }
 }

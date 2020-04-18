@@ -25,15 +25,11 @@ class AuthWidget extends StatefulWidget {
 class _AuthWidgetState extends State<AuthWidget> {
 
 
-
   @override
   Widget build(BuildContext context) {
-    print('authwidget');
-    print(userSnapshotStatic.connectionState.index);
-    print(userSnapshotStatic);
-    print(ConnectionState.active);
+
     if (userSnapshotStatic.connectionState == ConnectionState.active) {
-      print('active!!!!');
+
       return userSnapshotStatic.hasData
           ? BaseScreens(userSnapshotStatic.data.uid)
 

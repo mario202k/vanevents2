@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inner_drawer/inner_drawer.dart';
@@ -21,6 +22,37 @@ class HomeEvents extends StatefulWidget {
 class _HomeEventsState extends State<HomeEvents> {
   Stream<List<Event>> slides;
   List<Event> events = List<Event>();
+  bool isDispose = false;
+  bool startAnimation = false;
+
+  @override
+  void didUpdateWidget(HomeEvents oldWidget) {
+
+    //_afterLayout();
+
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void didChangeDependencies() {
+
+    WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
+  }
+
+  _afterLayout(_) {
+    if (!isDispose) {
+
+      setState(() {
+        startAnimation = !startAnimation;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    isDispose = true;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +69,6 @@ class _HomeEventsState extends State<HomeEvents> {
           Theme.of(context).colorScheme.brightness,
     ));
 
-    print('home_event!!!!!!!!');
 
 //    _queryDb(false, auth);
 //      SystemChrome.setPreferredOrientations([
@@ -46,107 +77,112 @@ class _HomeEventsState extends State<HomeEvents> {
 //      ]);
 
     return Scaffold(
-      body: Container(
-        color: Theme.of(context).colorScheme.background,
-        child: LayoutBuilder(builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                  minWidth: constraints.maxWidth,
-                  minHeight: constraints.maxHeight),
-              child: Column(
-                children: <Widget>[
-                  TopAppBar(
-                      'Events',
-                      true,
-                      () => widget.innerDrawerKey.currentState.toggle(),
-                      constraints.maxWidth),
-                  IntrinsicHeight(
-                    child: StreamBuilder<List<Event>>(
-                        stream: slides,
-                        initialData: List<Event>(),
-                        builder: (context, AsyncSnapshot snap) {
-                          if (snap.connectionState == ConnectionState.waiting) {
-                            return Center(
-                              child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Theme.of(context).colorScheme.secondary)),
-                            );
-                          } else if (snap.hasError) {
-                            print(
-                                'Erreur de connection${snap.error.toString()}');
-                            db.showSnackBar(
-                                'Erreur de connection${snap.error.toString()}',
-                                context);
-                            print(
-                                'Erreur de connection${snap.error.toString()}');
-                            return Center(
-                              child: Text(
-                                'Erreur de connection',
-                                style: Theme.of(context).textTheme.display1,
-                              ),
-                            );
-                          } else if (!snap.hasData) {
-                            print("pas data");
-                            return Center(
-                              child: Text('Pas d\'evenements'),
-                            );
-                          }
-
-                          events.clear();
-                          events.addAll(snap.data);
-                          double width = constraints.maxWidth * 0.9;
-
-                          return Hero(
-                            tag: '123',
-                            child: snap.data.isNotEmpty
-                                ? Swiper(
-                                    itemBuilder:
-                                        (BuildContext context, int index) {
-                                      return Image.network(
-                                        events[index].imageUrl,
-                                        fit: BoxFit.fill,
-                                        height: 700,
-                                      );
-                                    },
-                                    itemCount: events.length,
-                                    pagination: SwiperPagination(),
-                                    control: SwiperControl(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
-                                    ),
-                                    onTap: (index) {
-                                      ExtendedNavigator.of(context).pushNamed(
-                                          Routes.details,
-                                          arguments: DetailsArguments(
-                                              event:
-                                                  events.elementAt(index)));
-
-                                    },
-                                    itemWidth: width,
-                                    itemHeight: (width * 6) / 4.25,
-                                    layout: SwiperLayout.TINDER,
-                                    loop: true,
-                                    outer: true,
-                                    autoplay: true,
-                                    autoplayDisableOnInteraction: false,
-                                  )
-                                : Center(
-                                    child: Text(
-                                      'Pas D\'Evenements',
-                                      style: Theme.of(context).textTheme.button,
-                                    ),
-                                  ),
-                          );
-                        }),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: PreferredSize(
+        preferredSize: Size(double.infinity, 100),
+        child: TopAppBar('Events', true,
+            () => widget.innerDrawerKey.currentState.toggle(), double.infinity),
       ),
+      //appBar: AppBar(backgroundColor: Colors.yellow,shape: CustomShapeBorder() ,) ,
+      body: LayoutBuilder(builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: (constraints.maxHeight * 4.25) / 6,
+              minHeight: constraints.maxHeight,
+            ),
+            child: IntrinsicHeight(
+              child: StreamBuilder<List<Event>>(
+                  stream: slides,
+                  builder: (context, AsyncSnapshot snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).colorScheme.secondary)),
+                      );
+                    } else if (snap.hasError) {
+                      print('Erreur de connection${snap.error.toString()}');
+                      db.showSnackBar(
+                          'Erreur de connection${snap.error.toString()}',
+                          context);
+                      print('Erreur de connection${snap.error.toString()}');
+                      return Center(
+                        child: Text(
+                          'Erreur de connection',
+                          style: Theme.of(context).textTheme.display1,
+                        ),
+                      );
+                    } else if (!snap.hasData) {
+                      print("pas data");
+                      return Center(
+                        child: Text('Pas d\'évenements'),
+                      );
+                    }
+
+                    events.clear();
+                    events.addAll(snap.data);
+
+                    return Hero(
+                      tag: '123',
+                      child: snap.data.isNotEmpty
+                          ? Swiper(
+                              itemBuilder: (BuildContext context, int index) {
+                                return FittedBox(
+                                  fit: BoxFit.fill,
+                                  child: CachedNetworkImage(
+                                    imageUrl: events[index].imageUrl,
+                                    placeholder: (context, url) => SizedBox(
+                                      width:
+                                          (constraints.maxHeight * 4.25) / 6,
+                                      height: constraints.maxHeight,
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .secondary)),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) =>
+                                        Icon(Icons.error),
+                                  ),
+                                );
+                              },
+                              itemCount: events.length,
+                              pagination: SwiperPagination(),
+                              control: SwiperControl(
+                                color:
+                                    Theme.of(context).colorScheme.secondary,
+                              ),
+                              onTap: (index) {
+                                ExtendedNavigator.of(context).pushNamed(
+                                    Routes.details,
+                                    arguments: DetailsArguments(
+                                        event: events.elementAt(index)));
+                              },
+                              itemWidth:
+                                  (constraints.maxHeight * 0.88 * 4.25) / 6,
+                              itemHeight: constraints.maxHeight * 0.88,
+                              layout: SwiperLayout.TINDER,
+                              loop: true,
+                              outer: false,
+                              autoplay: true,
+                              autoplayDisableOnInteraction: false,
+                            )
+                          : Center(
+                              child: Text(
+                                'Pas d\'évenements',
+                                style: Theme.of(context).textTheme.button,
+                              ),
+                            ),
+                    );
+                  }),
+            ),
+          ),
+        );
+      }),
     );
   }
 
@@ -172,3 +208,5 @@ class _HomeEventsState extends State<HomeEvents> {
 //    return slides;
 //  }
 }
+
+

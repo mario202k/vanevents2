@@ -52,24 +52,50 @@ class _UploadEventState extends State<UploadEvent> {
 
   String _nom, _prix, _nb;
 
+  bool showSpinner = false;
+
   Future _getImageCamera() async {
     var image = await ImagePicker.pickImage(source: ImageSource.camera);
 
-    String path = image.path;
-    print(path.substring(path.lastIndexOf('/') + 1));
-    setState(() {
-      _image = image;
-    });
+    if(image!= null){
+      String path = image.path;
+      print(path.substring(path.lastIndexOf('/') + 1));
+      setState(() {
+        _image = image;
+      });
+    }else{
+      retrieveLostData();
+    }
+
   }
 
   Future _getImageGallery() async {
     var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    if(image!= null){
+      String path = image.path;
+      print(path.substring(path.lastIndexOf('/') + 1));
+      setState(() {
+        _image = image;
+      });
+    }else{
+      retrieveLostData();
+    }
 
-    String path = image.path;
-    print(path.substring(path.lastIndexOf('/') + 1));
-    setState(() {
-      _image = image;
-    });
+  }
+
+  Future<void> retrieveLostData() async {
+    final LostDataResponse response =
+    await ImagePicker.retrieveLostData();
+    if (response == null) {
+      return;
+    }
+    if (response.file != null) {
+      setState(() {
+        _image = response.file;
+      });
+    } else {
+      print(response.exception);
+    }
   }
 
   @override
@@ -567,104 +593,126 @@ class _UploadEventState extends State<UploadEvent> {
                         Row(
                           children: <Widget>[
                             Expanded(
-                              child: MaterialButton(
-                                color: Theme.of(context).accentColor,
-                                child: Text(
-                                  "Soumettre",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                onPressed: () {
-                                  _fbKey.currentState.save();
-                                  if (_fbKey.currentState.validate()) {
-                                    //print(_fbKey.currentState.fields['adresse'].currentState.value);
-                                    //print (_date.text);
-                                    //print(_description.text);
-                                    //print(_specifyTextFieldKey.currentState.value);
-
-                                    if (_image != null) {
-                                      String adresse = _fbKey
-                                                  .currentState
-                                                  .fields['adresse']
-                                                  .currentState
-                                                  .value ==
-                                              "Autre"
-                                          ? _specifyTextFieldKey
-                                              .currentState.value
-                                          : _fbKey
-                                              .currentState
-                                              .fields['adresse']
-                                              .currentState
-                                              .value;
-
-                                      List<Formule> formules = List<Formule>();
-
-                                      formulesWidgets.forEach((f) {
-                                        if (f is CardForm) {
-                                          if (f.fbKey.currentState.validate()) {
-                                            formules.add(Formule(
-                                                title: f
-                                                    .fbKey
-                                                    .currentState
-                                                    .fields['nom']
-                                                    .currentState
-                                                    .value,
-                                                prix: int.parse(f
-                                                    .fbKey
-                                                    .currentState
-                                                    .fields['prix']
-                                                    .currentState
-                                                    .value),
-                                                nombreDePersonne: int.parse(f
-                                                    .fbKey
-                                                    .currentState
-                                                    .fields['nb']
-                                                    .currentState
-                                                    .value),
-                                                id: f.numero.toString()));
-                                          } else {
-                                            showSnackBar(
-                                                'Corriger la formule n°${f.numero}',
-                                                context);
-                                          }
-                                        }
-                                      });
-
-                                      if (formules.length ==
-                                          formulesWidgets.length / 2) {
-                                        db.uploadEvent(
-                                            _dateDebut,
-                                            _dateFin,
-                                            adresse,
-                                            _title.text,
-                                            _description.text,
-                                            _image,
-                                            formules,
-                                            context);
-                                      }
-
-                                      //Navigator.pop(context);
-                                    } else {
-                                      showSnackBar(
-                                          'Il manque le Flyer', context);
-                                    }
-                                  } else {
-                                    print(_fbKey.currentState.value);
-                                    print("validation failed");
-                                    showSnackBar(
-                                        'formulaire non valide', context);
-                                  }
+                              child: AnimatedSwitcher(
+                                duration: Duration(milliseconds: 500),
+                                transitionBuilder: (Widget child, Animation<double> animation) {
+                                  return ScaleTransition(
+                                    scale: animation,
+                                    child: child,
+                                  );
                                 },
+                                child: !showSpinner ? RaisedButton(
+                                  //color: Theme.of(context).accentColor,
+                                  child: Text(
+                                    "Soumettre",
+                                    //style: TextStyle(color: Colors.white),
+                                  ),
+                                  onPressed: () {
+                                    _fbKey.currentState.save();
+                                    if (_fbKey.currentState.validate()) {
+                                      //print(_fbKey.currentState.fields['adresse'].currentState.value);
+                                      //print (_date.text);
+                                      //print(_description.text);
+                                      //print(_specifyTextFieldKey.currentState.value);
+
+                                      if (_image != null) {
+                                        String adresse = _fbKey
+                                                    .currentState
+                                                    .fields['adresse']
+                                                    .currentState
+                                                    .value ==
+                                                "Autre"
+                                            ? _specifyTextFieldKey
+                                                .currentState.value
+                                            : _fbKey
+                                                .currentState
+                                                .fields['adresse']
+                                                .currentState
+                                                .value;
+
+                                        List<Formule> formules = List<Formule>();
+
+                                        formulesWidgets.forEach((f) {
+                                          if (f is CardForm) {
+                                            if (f.fbKey.currentState.validate()) {
+                                              formules.add(Formule(
+                                                  title: f
+                                                      .fbKey
+                                                      .currentState
+                                                      .fields['nom']
+                                                      .currentState
+                                                      .value,
+                                                  prix: int.parse(f
+                                                      .fbKey
+                                                      .currentState
+                                                      .fields['prix']
+                                                      .currentState
+                                                      .value),
+                                                  nombreDePersonne: int.parse(f
+                                                      .fbKey
+                                                      .currentState
+                                                      .fields['nb']
+                                                      .currentState
+                                                      .value),
+                                                  id: f.numero.toString()));
+                                            } else {
+                                              showSnackBar(
+                                                  'Corriger la formule n°${f.numero}',
+                                                  context);
+                                            }
+                                          }
+                                        });
+
+                                        if (formules.length ==
+                                            formulesWidgets.length / 2) {
+
+                                          setState(() {
+                                            showSpinner = true;
+                                          });
+
+                                          db.uploadEvent(
+                                              _dateDebut,
+                                              _dateFin,
+                                              adresse,
+                                              _title.text,
+                                              _description.text,
+                                              _image,
+                                              formules,
+                                              context).whenComplete((){
+                                            setState(() {
+                                              showSpinner = false;
+                                            });
+                                          });
+                                        }
+
+                                        //Navigator.pop(context);
+                                      } else {
+                                        showSnackBar(
+                                            'Il manque le Flyer', context);
+                                      }
+                                    } else {
+                                      print(_fbKey.currentState.value);
+                                      print("validation failed");
+                                      showSnackBar(
+                                          'formulaire non valide', context);
+                                    }
+                                  },
+                                ):Center(
+                                  child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Theme.of(context).colorScheme.secondary)),
+                                ),
                               ),
                             ),
                             SizedBox(
                               width: 20,
                             ),
                             Expanded(
-                              child: MaterialButton(
-                                color: Theme.of(context).accentColor,
+                              child: RaisedButton(
+                                //color: Theme.of(context).colorScheme,
                                 child: Text(
                                   "Recommencer",
-                                  style: TextStyle(color: Colors.white),
+                                  //style: TextStyle(color: Colors.white),
                                 ),
                                 onPressed: () {
                                   _fbKey.currentState.reset();

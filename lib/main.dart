@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('MyApp');
+
     return MultiProvider(
       providers: [
         Provider<FirebaseAuthService>(
@@ -131,6 +131,7 @@ class MyApp extends StatelessWidget {
                         color: colorScheme.onBackground,
                       ),
                     ),
+
                     buttonTheme: ButtonThemeData(
                         textTheme: ButtonTextTheme.primary,
                         splashColor: colorScheme.primary,
@@ -147,6 +148,7 @@ class MyApp extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25))),
                     dividerColor: colorScheme.secondary),
+
 
                 builder: ExtendedNavigator<Router>(
                   router: Router(),

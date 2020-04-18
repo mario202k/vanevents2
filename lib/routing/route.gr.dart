@@ -12,20 +12,15 @@ import 'package:vanevents/screens/login.dart';
 import 'package:vanevents/screens/reset_password.dart';
 import 'package:vanevents/screens/sign_up.dart';
 import 'package:vanevents/screens/base_screen.dart';
-import 'package:vanevents/screens/home_events.dart';
-import 'package:flutter_inner_drawer/inner_drawer.dart';
-import 'package:vanevents/screens/chat.dart';
 import 'package:vanevents/screens/chat_room.dart';
 import 'package:vanevents/screens/full_photo.dart';
-import 'package:vanevents/screens/profile.dart';
-import 'package:vanevents/screens/tickets.dart';
 import 'package:vanevents/screens/upload_event.dart';
 import 'package:vanevents/screens/details.dart';
 import 'package:vanevents/models/event.dart';
 import 'package:vanevents/screens/formula_choice.dart';
 import 'package:vanevents/models/formule.dart';
 import 'package:vanevents/screens/qr_code.dart';
-import 'package:vanevents/screens/qr_code_scanner.dart';
+import 'package:vanevents/screens/monitoring_scanner.dart';
 import 'package:vanevents/screens/admin_event.dart';
 
 abstract class Routes {
@@ -34,17 +29,13 @@ abstract class Routes {
   static const resetPassword = '/reset-password';
   static const signUp = '/sign-up';
   static const baseScreens = '/base-screens';
-  static const homeEvents = '/home-events';
-  static const chat = '/chat';
   static const chatRoom = '/chat-room';
   static const fullPhoto = '/full-photo';
-  static const profile = '/profile';
-  static const tickets = '/tickets';
   static const uploadEvent = '/upload-event';
   static const details = '/details';
   static const formulaChoice = '/formula-choice';
   static const qrCode = '/qr-code';
-  static const qrCodeScanner = '/qr-code-scanner';
+  static const monitoringScanner = '/monitoring-scanner';
   static const adminEvents = '/admin-events';
 }
 
@@ -93,24 +84,6 @@ class Router extends RouterBase {
           builder: (_) => BaseScreens(typedArgs.uid),
           settings: settings,
         );
-      case Routes.homeEvents:
-        if (hasInvalidArgs<HomeEventsArguments>(args)) {
-          return misTypedArgsRoute<HomeEventsArguments>(args);
-        }
-        final typedArgs = args as HomeEventsArguments ?? HomeEventsArguments();
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => HomeEvents(typedArgs.innerDrawerKey),
-          settings: settings,
-        );
-      case Routes.chat:
-        if (hasInvalidArgs<ChatArguments>(args)) {
-          return misTypedArgsRoute<ChatArguments>(args);
-        }
-        final typedArgs = args as ChatArguments ?? ChatArguments();
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => Chat(typedArgs.innerDrawerKey),
-          settings: settings,
-        );
       case Routes.chatRoom:
         if (hasInvalidArgs<ChatRoomArguments>(args)) {
           return misTypedArgsRoute<ChatRoomArguments>(args);
@@ -128,21 +101,6 @@ class Router extends RouterBase {
         final typedArgs = args as FullPhotoArguments;
         return MaterialPageRoute<dynamic>(
           builder: (_) => FullPhoto(key: typedArgs.key, url: typedArgs.url),
-          settings: settings,
-        );
-      case Routes.profile:
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => Profile(),
-          settings: settings,
-        );
-      case Routes.tickets:
-        if (hasInvalidArgs<TicketsArguments>(args)) {
-          return misTypedArgsRoute<TicketsArguments>(args);
-        }
-        final typedArgs = args as TicketsArguments ?? TicketsArguments();
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => Tickets(
-              key: typedArgs.key, innerDrawerKey: typedArgs.innerDrawerKey),
           settings: settings,
         );
       case Routes.uploadEvent:
@@ -183,9 +141,14 @@ class Router extends RouterBase {
           builder: (_) => QrCode(typedArgs.data),
           settings: settings,
         );
-      case Routes.qrCodeScanner:
+      case Routes.monitoringScanner:
+        if (hasInvalidArgs<MonitoringScannerArguments>(args)) {
+          return misTypedArgsRoute<MonitoringScannerArguments>(args);
+        }
+        final typedArgs =
+            args as MonitoringScannerArguments ?? MonitoringScannerArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => QrCodeScanner(),
+          builder: (_) => MonitoringScanner(typedArgs.eventId),
           settings: settings,
         );
       case Routes.adminEvents:
@@ -216,18 +179,6 @@ class BaseScreensArguments {
   BaseScreensArguments({this.uid});
 }
 
-//HomeEvents arguments holder class
-class HomeEventsArguments {
-  final GlobalKey<InnerDrawerState> innerDrawerKey;
-  HomeEventsArguments({this.innerDrawerKey});
-}
-
-//Chat arguments holder class
-class ChatArguments {
-  final GlobalKey<InnerDrawerState> innerDrawerKey;
-  ChatArguments({this.innerDrawerKey});
-}
-
 //ChatRoom arguments holder class
 class ChatRoomArguments {
   final String myId;
@@ -248,13 +199,6 @@ class FullPhotoArguments {
   final Key key;
   final String url;
   FullPhotoArguments({this.key, @required this.url});
-}
-
-//Tickets arguments holder class
-class TicketsArguments {
-  final Key key;
-  final GlobalKey<InnerDrawerState> innerDrawerKey;
-  TicketsArguments({this.key, this.innerDrawerKey});
 }
 
 //UploadEvent arguments holder class
@@ -280,4 +224,10 @@ class FormulaChoiceArguments {
 class QrCodeArguments {
   final String data;
   QrCodeArguments({this.data});
+}
+
+//MonitoringScanner arguments holder class
+class MonitoringScannerArguments {
+  final String eventId;
+  MonitoringScannerArguments({this.eventId});
 }

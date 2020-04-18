@@ -31,15 +31,18 @@ class Event {
   }
 
   factory Event.fromMap(Map<String, dynamic> map,String documentId) {
+    Timestamp dateDebut = map['dateDebut'] ?? '';
+    Timestamp dateFin = map['dateFin'] ?? '';
+
     return new Event(
       id: documentId,
       titre: map['titre'] as String,
       description: map['description'] as String,
       imageUrl: map['imageUrl'] as String,
-      dateDebut: map['dateDebut'] as DateTime,
-      dateFin: map['dateFin'] as DateTime,
-      nbParticipant: map['nbParticipant'] as int,
-      nbExpected: map['nbExpected'] as int,
+      dateDebut: dateDebut.toDate(),
+      dateFin: dateFin.toDate(),
+      nbParticipant: map['nbParticipant'] as int ?? 0,
+      nbExpected: map['nbExpected'] as int ?? 0,
       status: map['status'] as String,
     );
   }

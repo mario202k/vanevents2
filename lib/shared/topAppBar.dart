@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:vanevents/main.dart';
 import 'package:vanevents/models/user.dart';
 import 'package:vanevents/services/firestore_database.dart';
 
@@ -24,6 +25,7 @@ class _TopAppBarState extends State<TopAppBar> with TickerProviderStateMixin {
   bool startAnimation = false;
   AnimationController animationController;
   bool disposed = false;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   _afterLayout(_) {
     setState(() {
@@ -53,10 +55,9 @@ class _TopAppBarState extends State<TopAppBar> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final db = Provider.of<FirestoreDatabase>(context,listen: false);
+    final db = Provider.of<FirestoreDatabase>(context, listen: false);
     if (widget.isMenu) {
       final toggle = Provider.of<ValueNotifier<bool>>(context, listen: false);
-      
 
       toggle.addListener(() {
         if (!disposed) {
@@ -71,42 +72,9 @@ class _TopAppBarState extends State<TopAppBar> with TickerProviderStateMixin {
 
     return Stack(
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.only(top: 20.5),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Row(
-              children: <Widget>[
-                IconButton(
-                  icon: widget.isMenu
-                      ? AnimatedIcon(
-                    icon: AnimatedIcons.menu_arrow,
-                    progress: animationController,
-                    color: Theme.of(context).colorScheme.onSecondary,
-                  )
-                      : Icon(
-                    Platform.isAndroid
-                        ? Icons.arrow_back
-                        : Icons.arrow_back_ios,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  onPressed: () {
-                    widget.isMenu ? widget.onPressed() : Navigator.pop(context);
-                  },
-                ),
-                Flexible(
-                  child: Text(
-                    widget.title,
-                    style: Theme.of(context).textTheme.headline,
-                  ),
-                ),
-
-              ],
-            ),
-          ),
-        ),
         ClipPath(
-          clipper: widget.title == 'Chat' ? ClippingChatClass() : ClippingClass(),
+          clipper:
+              widget.title == 'Chat' ? ClippingChatClass() : ClippingClass(),
           child: AnimatedContainer(
             duration: Duration(seconds: 1),
             curve: Curves.easeInOut,
@@ -132,7 +100,7 @@ class _TopAppBarState extends State<TopAppBar> with TickerProviderStateMixin {
                           Platform.isAndroid
                               ? Icons.arrow_back
                               : Icons.arrow_back_ios,
-                          color: Theme.of(context).colorScheme.onPrimary,
+                          color: Theme.of(context).colorScheme.onBackground,
                         ),
                   onPressed: () {
                     widget.isMenu ? widget.onPressed() : Navigator.pop(context);
@@ -144,70 +112,80 @@ class _TopAppBarState extends State<TopAppBar> with TickerProviderStateMixin {
                     style: Theme.of(context).textTheme.headline,
                   ),
                 ),
-                widget.title == 'Chat' ? PopupMenuButton<String>(color: Theme.of(context).colorScheme.primary,
-                  onSelected: (String value) async {
-                    switch (value) {
-                      case 'Value1':
-                        final User userFriend = await showSearch(
-                            context: this.context,
-                            delegate: UserSearch(UserBlocSearchName()));
+                widget.title == 'Chat'
+                    ? PopupMenuButton<String>(
+                        color: Theme.of(context).colorScheme.primary,
+                        onSelected: (String value) async {
+                          switch (value) {
+                            case 'Value1':
+                              final User userFriend = await showSearch(
+                                  context: context,
+                                  delegate: UserSearch(UserBlocSearchName()));
 
-                        if (userFriend != null) {
-                          db
-                              .creationChatRoom(userFriend.id)
-                              .then((chatId) {
-//                    Navigator.push(
-//                        context,
-//                        MaterialPageRoute(
-//                            builder: (context) => ChatRoom(
-//                                myId,
-//                                userFriend.nom,
-//                                userFriend.image,
-//                                chatId,
-//                                userFriend.id)));
-                          });
-                        }
+                              if (userFriend != null) {
+                                db
+                                    .creationChatRoom(userFriend.id)
+                                    .then((chatId) {});
+                              }
 
-                        break;
-                      case 'Value2':
-
-//                    final User userFriend = await showSearch(
-//                        context: this.context,
-//                        delegate: UserSearch(UserBlocSearchEvent()));
-
-//                    if (userFriend != null) {
-//                      _auth.creationChatRoom(myId, userFriend.id).then((
-//                          chatId) {
-//                        Navigator.push(
-//                            context,
-//                            MaterialPageRoute(
-//                                builder: (context) =>
-//                                    ChatRoom(myId, userFriend.nom,
-//                                        userFriend.image, chatId,
-//                                        userFriend.id)));
-//                      });
-//                    }
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 15),
-                    child: Icon(FontAwesomeIcons.search,color: Theme.of(context).colorScheme.background,),
-                  ),
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'Value1',
-                      child: Text('Par Nom'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'Value2',
-                      child: Text('Y était aussi'),
-                    ),
-                  ],
-                ) : SizedBox(),
+                              break;
+                            case 'Value2':
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 15),
+                          child: Icon(
+                            FontAwesomeIcons.search,
+                            color: Theme.of(context).colorScheme.onBackground,
+                          ),
+                        ),
+                        itemBuilder: (BuildContext context) =>
+                            <PopupMenuEntry<String>>[
+                          PopupMenuItem<String>(
+                            value: 'Value1',
+                            child: Text(
+                              'Par Nom',
+                              style: Theme.of(context).textTheme.button,
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'Value2',
+                            child: Text(
+                              'Y était aussi',
+                              style: Theme.of(context).textTheme.button,
+                            ),
+                          ),
+                        ],
+                      )
+                    : SizedBox(),
               ],
             ),
           ),
         ),
+        widget.title == 'Profil'
+            ? FractionalTranslation(
+                translation: Offset(
+                  0.0,
+                  .3,
+                ),
+                child: Align(
+                    alignment: FractionalOffset(0.5, 0.0),
+                    child: CircleAvatar(
+                      radius: 59,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      child: Consumer<User>(
+                        builder: (context, user, child) {
+                          return user.imageUrl != null
+                              ? CircleAvatar(
+                                  backgroundImage: NetworkImage(user.imageUrl),
+                                  radius: 57,
+                                )
+                              : SizedBox();
+                        },
+                      ),
+                    )),
+              )
+            : SizedBox(),
       ],
     );
   }
@@ -256,14 +234,16 @@ class ClippingClass extends CustomClipper<Path> {
     return false;
   }
 }
+
 class ClippingChatClass extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();
     path.lineTo(0.0, size.height);
 
-    path.lineTo(size.width*0.85, size.height*0.5);
-    path.quadraticBezierTo(size.width*0.97, size.height*0.95, size.width, size.height*.6);
+    path.lineTo(size.width * 0.85, size.height * 0.5);
+    path.quadraticBezierTo(
+        size.width * 0.97, size.height * 0.95, size.width, size.height * .6);
     path.lineTo(size.width, size.height);
 
     path.lineTo(size.width, 0);
@@ -277,11 +257,11 @@ class ClippingChatClass extends CustomClipper<Path> {
     return false;
   }
 }
+
 class UserSearch extends SearchDelegate<User> {
   final Bloc<UserSearchEvent, UserSearchState> userBloc;
 
   UserSearch(this.userBloc);
-
 
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -320,26 +300,17 @@ class UserSearch extends SearchDelegate<User> {
       builder: (BuildContext context, UserSearchState state) {
         if (state.isLoading) {
           return Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Theme.of(context).colorScheme.secondary)),
           );
         }
 
         if (state.hasError) {
           return Container(
-            child: Text('Error'),
+            child: Text('Error', style: Theme.of(context).textTheme.button),
           );
         }
-
-//        int j;
-//
-//        for (int i = 0; i < state.users.length; i++) {
-//          if (state.users[i].id == user.uid) {
-//            j = i;
-//            break;
-//          }
-//        }
-//
-//        if (j != null) state.users.removeAt(j);
 
         return ListView.builder(
           itemBuilder: (context, index) {
@@ -373,13 +344,15 @@ class UserSearch extends SearchDelegate<User> {
       builder: (BuildContext context, UserSearchState state) {
         if (state.isLoading) {
           return Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Theme.of(context).colorScheme.secondary)),
           );
         }
 
         if (state.hasError) {
           return Container(
-            child: Text('Error'),
+            child: Text('Error', style: Theme.of(context).textTheme.button),
           );
         }
 
@@ -400,7 +373,10 @@ class UserSearch extends SearchDelegate<User> {
             itemBuilder: (context, index) {
               print(index);
               return ListTile(
-                title: Text(state.users[index].nom ?? ''),
+                title: Text(
+                  state.users[index].nom ?? '',
+                  style: Theme.of(context).textTheme.button,
+                ),
                 leading: CircleAvatar(
                   backgroundImage: NetworkImage(state.users[index].imageUrl),
                   radius: 25,
@@ -417,6 +393,7 @@ class UserSearch extends SearchDelegate<User> {
     );
   }
 }
+
 class UserBlocSearchName extends Bloc<UserSearchEvent, UserSearchState> {
   List<User> users = List<User>();
 
@@ -433,44 +410,51 @@ class UserBlocSearchName extends Bloc<UserSearchEvent, UserSearchState> {
     yield UserSearchState.loading();
 
     try {
-      List<User> users = await _getSearchResults(event.query,event.myId);
+      List<User> users = await _getSearchResults(event.query, event.myId);
       yield UserSearchState.success(users);
     } catch (err) {
+      print(err);
+      print('//');
       yield UserSearchState.error();
     }
   }
 
-  Future<List<User>> _getSearchResults(String query,String myId) async {
+  Future<List<User>> _getSearchResults(String query, String myId) async {
     List<User> result = List<User>();
 
+//    Firestore.instance
+//        .collection('collection-name')
+//        .orderBy('name')
+//        .startAt([query])
+//        .endAt([query + '\uf8ff']).snapshots()
+
     if (users.isEmpty) {
-//      FirebaseUser me = await _auth.auth.currentUser();
-//
-//      User mee = await _auth.getUserFirestore(me.uid);
-//      users = await _auth.db.collection('users').getDocuments().then(
-//          (docs) =>
-//              docs.documents.map((doc) => User.fromMap(doc.data)).toList());
+//      List<User> user1 = await Firestore.instance
+//          .collection('users')
+//          .where('id', isGreaterThan: myId)
+//          .getDocuments()
+//          .then((docs) => docs.documents
+//              .map((doc) => User.fromMap(doc.data, doc.documentID))
+//              .toList());
+//      List<User> user2 = await Firestore.instance
+//          .collection('users')
+//          .where('id', isLessThan: myId)
+//          .getDocuments()
+//          .then((docs) => docs.documents
+//              .map((doc) => User.fromMap(doc.data, doc.documentID))
+//              .toList());
 
-      print("$myId!!!!!!!!!!!!");
-      List<User> user1 = await Firestore.instance
-          .collection('users')
-          .where('id', isGreaterThan: myId)
+      users = await Firestore.instance.collection('users')
           .getDocuments()
-          .then((docs) =>
-          docs.documents.map((doc) => User.fromMap(doc.data,doc.documentID)).toList());
-      List<User> user2 = await Firestore.instance
-          .collection('users')
-          .where('id', isLessThan: myId)
-          .getDocuments()
-          .then((docs) =>
-          docs.documents.map((doc) => User.fromMap(doc.data,doc.documentID)).toList());
+          .then((docs) => docs.documents
+          .map((doc) => User.fromMap(doc.data, doc.documentID))
+          .toList());
 
-      users = List.from(user1)..addAll(user2); //Tout le monde sauf moi
+      users.removeWhere((user)=>user.id == myId);
 
+      //users = List.from(user1)..addAll(user2); //Tout le monde sauf moi
 
-
-      result = List.from(users);
-
+      result.addAll(users);
     } else {
       users.forEach((user) {
         if (user.nom.contains(query)) {
@@ -482,11 +466,12 @@ class UserBlocSearchName extends Bloc<UserSearchEvent, UserSearchState> {
     return result;
   }
 }
+
 class UserSearchEvent {
   final String query;
   final String myId;
 
-  const UserSearchEvent(this.query,this.myId);
+  const UserSearchEvent(this.query, this.myId);
 
   @override
   String toString() => 'UserSearchEvent { query: $query }';

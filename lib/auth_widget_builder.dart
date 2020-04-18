@@ -18,7 +18,7 @@ class AuthWidgetBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('authwidgetbuilder');
+
     final authService =
         Provider.of<FirebaseAuthService>(context, listen: false);
 

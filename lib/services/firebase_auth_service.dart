@@ -85,9 +85,6 @@ class FirebaseAuthService {
       'lastActivity': DateTime.now(),
       'provider': firebaseUser.providerId,
       'isLogin': false,
-      'attended': [],
-      'willAttend': [],
-      'chat': [],
       'chatId': {}
     }, merge: true);
 
@@ -128,9 +125,6 @@ class FirebaseAuthService {
               'lastActivity': DateTime.now(),
               'provider': user.user.providerId,
               'isLogin': false,
-              'attended': [],
-              'willAttend': [],
-              'chat': [],
               'chatId': {}
             }, merge: true).then((_) async {
               //envoi de l'email de vérification
