@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inner_drawer/inner_drawer.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:vanevents/models/chat.dart';
 import 'package:vanevents/models/message.dart';
 import 'package:vanevents/models/user.dart';
 import 'package:vanevents/routing/route.gr.dart';
@@ -22,8 +23,11 @@ class Chat extends StatefulWidget {
 }
 
 class _ChatState extends State<Chat> with TickerProviderStateMixin {
-  Stream<List<List<User>>> friendUser;
-  List<User> users = List<User>();
+  Stream friendUser;
+//  List<User> users = List<User>();
+//  List<Chat> chats = List<Chat>();
+
+  List<Object> usersAndChats = List<Object>();
 
   @override
   void dispose() {
@@ -37,7 +41,8 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final db = Provider.of<FirestoreDatabase>(context, listen: false);
-    friendUser = StreamZip([db.usersStreamChat1(), db.usersStreamChat2()]);
+    
+    friendUser = StreamZip([db.usersStreamChat1(), db.usersStreamChat2(),db.chatRoomGroupe()]);
 
     print('Chat!!!!!!!');
     return Scaffold(
@@ -59,7 +64,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                   constraints: BoxConstraints(
                       minWidth: constraints.maxWidth,
                       minHeight: constraints.maxHeight),
-                  child: StreamBuilder<List<List<User>>>(
+                  child: StreamBuilder<List<Object>>(
                     stream: friendUser,
                     //qui ont deja discuter
                     //initialData: [[],[]],
@@ -80,11 +85,16 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                         );
                       }
 
-                      users.clear();
-                      users.addAll(snapshot.data[0]);
-                      users.addAll(snapshot.data[1]);
+//                      chats.clear();
+//                      users.clear();
+//                      users.addAll(snapshot.data[0]);
+//                      users.addAll(snapshot.data[1]);
+//                      chats.addAll(snapshot.data[2]);
 
-                      return users.isNotEmpty
+                      usersAndChats.clear();
+
+
+                      return usersAndChats.isNotEmpty
                           ? ListView.separated(
                               shrinkWrap: true,
                               separatorBuilder: (context, index) => Divider(
@@ -93,15 +103,24 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                                         .onBackground,
                                     thickness: 1,
                                   ),
-                              itemCount: users.length,
+                              itemCount: usersAndChats.length,
                               itemBuilder: (context, index) {
-                                final User userFriend = users.elementAt(index);
+                                User userFriend = User();
+                                MyChat chat = MyChat();
+                                bool isUser= false;
+                                if(usersAndChats.elementAt(index) is User){
+                                  userFriend = usersAndChats.elementAt(index);
+                                  isUser = true;
+                                }else{
+                                  chat = usersAndChats.elementAt(index);
+                                }
 
                                 Stream<Message> lastMsg = db.getLastChatMessage(
-                                    userFriend.chatId[db.uid]);
+
+                                    isUser?userFriend.chatId[db.uid]:chat.id);
                                 Stream<List<Message>> msgNonLu =
                                     db.getChatMessageNonLu(
-                                        userFriend.chatId[db.uid]);
+                                        isUser?userFriend.chatId[db.uid]:chat.id);
 
                                 return StreamBuilder<Message>(
                                     stream: lastMsg,
@@ -133,10 +152,9 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
 
                                       return ListTile(
                                         title: Text(
-                                          userFriend.nom,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .title,
+                                          isUser?userFriend.nom:chat.titre,
+                                          style:
+                                              Theme.of(context).textTheme.title,
                                         ),
                                         subtitle: message.type == 0
                                             ? Text(
@@ -185,21 +203,22 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                                                             .textTheme
                                                             .button),
                                         onTap: () {
+                                          isUser?
                                           db
                                               .getChatId(userFriend.id)
                                               .then((chatId) {
-                                                db.chatRoomIsGroupe(chatId).then((rep){
-                                                  Router.navigator.pushNamed(
-                                                      Routes.chatRoom,
-                                                      arguments: ChatRoomArguments(
-                                                        isGroupe:rep,
-                                                          myId: db.uid,
-                                                          nomFriend: userFriend.nom,
-                                                          imageFriend:
+                                            db.chatRoom(chatId).then((chat) {
+                                              Router.navigator.pushNamed(
+                                                  Routes.chatRoom,
+                                                  arguments: ChatRoomArguments(
+                                                      isGroupe: chat.isGroupe,
+                                                      myId: db.uid,
+                                                      nomFriend: userFriend.nom,
+                                                      imageFriend:
                                                           userFriend.imageUrl,
-                                                          chatId: chatId,
-                                                          friendId: userFriend.id));
-                                                });
+                                                      chatId: chatId,
+                                                      friendId: userFriend.id));
+                                            });
 
 //                                          Navigator.of(context).pushNamed(
 //                                              Router.chatRoom,
@@ -219,7 +238,17 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
 //                                                  userFriend.imageUrl,
 //                                                  chatId,
 //                                                  userFriend.id)));
-                                          });
+                                          }) :
+                                          Router.navigator.pushNamed(
+                                              Routes.chatRoom,
+                                              arguments: ChatRoomArguments(
+                                                  isGroupe: chat.isGroupe,
+                                                  myId: db.uid,
+                                                  nomFriend: chat.titre,
+                                                  imageFriend:
+                                                  chat.imageUrl,
+                                                  chatId: chat.id,))
+                                          ;
                                         },
                                         leading: CircleAvatar(
                                           backgroundImage:

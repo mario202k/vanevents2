@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:map_launcher/map_launcher.dart';
 import 'package:meta/meta.dart';
+import 'package:vanevents/models/chat.dart';
 import 'package:vanevents/models/event.dart';
 import 'package:vanevents/models/formule.dart';
 import 'package:vanevents/models/message.dart';
@@ -78,6 +79,14 @@ class FirestoreDatabase {
           query.where('id', isLessThan: uid).where('chat', arrayContains: uid)
       //.where('chatId.$uid', isLessThan : '\uf8ff')
       );
+
+  Stream<List<MyChat>> chatRoomGroupe() {
+    return db
+        .collection('chats')
+        .where('uid', arrayContains: uid)
+        .snapshots()
+        .map((docs) => docs.documents.map((doc) => MyChat.fromMap(doc.data)));
+  }
 
   Stream<Message> getLastChatMessage(String chatId) {
     return _db
@@ -258,7 +267,6 @@ class FirestoreDatabase {
       File image,
       List<Formule> formules,
       BuildContext context) async {
-
     //création du path pour le flyer
     String path = image.path.substring(image.path.lastIndexOf('/') + 1);
 
@@ -281,15 +289,18 @@ class FirestoreDatabase {
         'id': idChatRoom,
         'createdAt': DateTime.now(),
         'isGroupe': true,
+        'groupe':{},
+        'uid':[],
+        'imageUrl':url,
       });
 
       await _db.collection("events").document(idEvent).setData({
         "id": idEvent,
-        'chatId':idChatRoom,
+        'chatId': idChatRoom,
         "dateDebut": dateDebut,
         "dateFin": dateFin,
         "adresse": adresse,
-        'location':'${coords.latitude},${coords.longitude}',
+        'location': '${coords.latitude},${coords.longitude}',
         "titre": titre,
         'status': 'A venir',
         "description": description,
@@ -367,7 +378,7 @@ class FirestoreDatabase {
     });
   }
 
-  void showSnackBar(String val,BuildContext context) {
+  void showSnackBar(String val, BuildContext context) {
     Scaffold.of(context).showSnackBar(SnackBar(
         backgroundColor: Theme.of(context).colorScheme.error,
         duration: Duration(seconds: 3),
@@ -452,13 +463,14 @@ class FirestoreDatabase {
         .map((docs) =>
             docs.documents.map((doc) => Ticket.fromMap(doc.data)).toList());
   }
+
   Stream<List<Ticket>> streamTicketsAdmin(String eventId) {
     return _db
         .collection('tickets')
         .where('eventId', isEqualTo: eventId)
         .snapshots()
         .map((docs) =>
-        docs.documents.map((doc) => Ticket.fromMap(doc.data)).toList());
+            docs.documents.map((doc) => Ticket.fromMap(doc.data)).toList());
   }
 
   Stream<Ticket> streamTicket(String data) {
@@ -482,68 +494,73 @@ class FirestoreDatabase {
   }
 
   void cancelEvent(String id) {
-    _db
-        .collection('events')
-        .document(id)
-        .updateData({'status': 'Annuler'});
+    _db.collection('events').document(id).updateData({'status': 'Annuler'});
   }
 
   void ticketValidated(String id) {
-    db.collection('tickets').document(id)
-        .updateData({'status': 'Validé'});
+    db.collection('tickets').document(id).updateData({'status': 'Validé'});
   }
 
   void showSnackBar2(String val, GlobalKey<ScaffoldState> scaffoldKey) {
     scaffoldKey.currentState.showSnackBar(SnackBar(
-        backgroundColor: Theme.of(scaffoldKey.currentState.context).colorScheme.error,
+        backgroundColor:
+            Theme.of(scaffoldKey.currentState.context).colorScheme.error,
         duration: Duration(seconds: 3),
         content: Text(
           val,
           textAlign: TextAlign.center,
           style: TextStyle(
-              color: Theme.of(scaffoldKey.currentState.context).colorScheme.onError, fontSize: 16.0),
+              color: Theme.of(scaffoldKey.currentState.context)
+                  .colorScheme
+                  .onError,
+              fontSize: 16.0),
         )));
-
   }
 
-  setToggleisHere(Map participant, String qrResult,int index) {
-
+  setToggleisHere(Map participant, String qrResult, int index) {
     String key = participant.keys.toList()[index];
     List val = participant[key];
     bool isHere = val.removeAt(1);
     isHere = !isHere;
     val.insert(1, isHere);
-    db.collection('tickets').document(qrResult).updateData({'participant.$key' : val });
-
+    db
+        .collection('tickets')
+        .document(qrResult)
+        .updateData({'participant.$key': val});
   }
 
   toutValider(Ticket onGoing) {
-
-    for(int i=0; i<onGoing.participants.length;i++ ){
-
+    for (int i = 0; i < onGoing.participants.length; i++) {
       setToggleisHere(onGoing.participants, onGoing.id, i);
-
     }
   }
 
-  Future<bool> chatRoomIsGroupe(String chatId)async {
-    return await db.collection('chats').document(chatId).get().then((doc)=>doc.data['isGroupe'] as bool);
+  Stream<Map> chatRoomNameGroupe(String chatId) {
+    return _db
+        .collection('chats')
+        .document(chatId)
+        .snapshots()
+        .map((doc) => MyChat.fromMap(doc.data).groupe);
   }
 
-  Future addAmongGroupe(String chatId, String userName) async{
+  Future<MyChat> chatRoom(String chatId) {
+    return _db
+        .collection('chats')
+        .document(chatId)
+        .get()
+        .then((doc) => MyChat.fromMap(doc.data));
+  }
 
-    return await db.collection('chats').document(chatId).updateData({uid:userName});
-
+  Future addAmongGroupe(String chatId, String userName) async {
+    return await db.collection('chats').document(chatId).updateData({
+      'groupe': {uid, userName},
+    });
   }
 
   Future<String> getChatId(String idFriend) async {
-
     await _db.collection('users').document(uid).get().then((doc) async {
-      Map map = User
-          .fromMap(doc.data, doc.documentID)
-          .chatId;
+      Map map = User.fromMap(doc.data, doc.documentID).chatId;
       return map[idFriend];
-    }
-    );
+    });
   }
 }

@@ -132,32 +132,37 @@ class _TopAppBarState extends State<TopAppBar> with TickerProviderStateMixin {
                                 db
                                     .creationChatRoom(userFriend.id)
                                     .then((chatId) {
-                                      ExtendedNavigator.of(context).pushNamed(Routes.chatRoom,
-                                          arguments: ChatRoomArguments(
-                                              myId: db.uid,
-                                              nomFriend: userFriend.nom,
-                                              imageFriend:
-                                              userFriend.imageUrl,
-                                              chatId: chatId,
-                                              friendId: userFriend.id));
+                                  ExtendedNavigator.of(context).pushNamed(
+                                      Routes.chatRoom,
+                                      arguments: ChatRoomArguments(
+                                          isGroupe: false,
+                                          myId: db.uid,
+                                          nomFriend: userFriend.nom,
+                                          imageFriend: userFriend.imageUrl,
+                                          chatId: chatId,
+                                          friendId: userFriend.id));
                                 });
                               }
 
                               break;
                             case 'Value2':
-                               await showSearch(
-                                  context: context,
-                                  delegate: MyEventSearch(MyEventBlocSearchName())).then((myEvent){
-                                    db.addAmongGroupe(myEvent.chatId,user.nom);
+                              await showSearch(
+                                      context: context,
+                                      delegate: MyEventSearch(
+                                          MyEventBlocSearchName()))
+                                  .then((myEvent) async {
+                                await db.addAmongGroupe(
+                                    myEvent.chatId, user.nom);
 
-                                 ExtendedNavigator.of(context).pushNamed(Routes.chatRoom,
-                                     arguments: ChatRoomArguments(
-                                       myId: db.uid,
-                                       nomFriend: myEvent.titre,
-                                         imageFriend:
-                                         myEvent.imageUrl,
-                                         chatId: myEvent.chatId,));
-
+                                ExtendedNavigator.of(context)
+                                    .pushNamed(Routes.chatRoom,
+                                        arguments: ChatRoomArguments(
+                                          isGroupe: true,
+                                          myId: db.uid,
+                                          nomFriend: myEvent.titre,
+                                          imageFriend: myEvent.imageUrl,
+                                          chatId: myEvent.chatId,
+                                        ));
                               });
 
                               break;
@@ -288,4 +293,3 @@ class ClippingChatClass extends CustomClipper<Path> {
     return false;
   }
 }
-

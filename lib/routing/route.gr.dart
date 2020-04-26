@@ -90,8 +90,13 @@ class Router extends RouterBase {
         }
         final typedArgs = args as ChatRoomArguments ?? ChatRoomArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => ChatRoom(typedArgs.myId, typedArgs.nomFriend,
-              typedArgs.imageFriend, typedArgs.chatId, typedArgs.friendId),
+          builder: (_) => ChatRoom(
+              typedArgs.isGroupe,
+              typedArgs.myId,
+              typedArgs.nomFriend,
+              typedArgs.imageFriend,
+              typedArgs.chatId,
+              typedArgs.friendId),
           settings: settings,
         );
       case Routes.fullPhoto:
@@ -181,13 +186,15 @@ class BaseScreensArguments {
 
 //ChatRoom arguments holder class
 class ChatRoomArguments {
+  final bool isGroupe;
   final String myId;
   final String nomFriend;
   final String imageFriend;
   final String chatId;
   final String friendId;
   ChatRoomArguments(
-      {this.myId,
+      {this.isGroupe,
+      this.myId,
       this.nomFriend,
       this.imageFriend,
       this.chatId,

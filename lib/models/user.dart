@@ -21,7 +21,7 @@ class User {
       this.nom,
       this.password,
       this.provider,
-        this.chat,
+      this.chat,
       this.chatId});
 
   Map<String, dynamic> toMap() {

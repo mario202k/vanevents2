@@ -11,15 +11,15 @@ import 'package:vanevents/screens/full_photo.dart';
 import 'package:vanevents/services/firestore_database.dart';
 
 class ChatRoom extends StatefulWidget {
-  final Map groupe;
+  final bool isGroupe;
   final String myId;
   final String nomFriend;
   final String imageFriend;
   final String chatId;
   final String friendId;
 
-  ChatRoom(this.groupe,
-      this.myId, this.nomFriend, this.imageFriend, this.chatId, this.friendId);
+  ChatRoom(this.isGroupe, this.myId, this.nomFriend, this.imageFriend,
+      this.chatId, this.friendId);
 
   @override
   _ChatRoomState createState() => _ChatRoomState();
@@ -33,11 +33,19 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
   TextEditingController _textEditingController = TextEditingController();
 
   Stream<List<Message>> streamListMessage;
+  Stream<Map> streamMapUserName;
+  Map mapUserName;
 
   @override
   Widget build(BuildContext context) {
     final db = Provider.of<FirestoreDatabase>(context, listen: false);
     streamListMessage = db.getChatMessages(widget.chatId);
+    if (widget.isGroupe) {
+      streamMapUserName = db.chatRoomNameGroupe(widget.chatId);
+      streamMapUserName.listen((map) {
+        mapUserName = map;
+      });
+    }
     return Scaffold(
         appBar: AppBar(
             elevation: 0.4,
@@ -154,14 +162,19 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
                                             _messages[index],
                                             widget.myId ==
                                                 _messages[index].idFrom,
-                                            _messages[index].idFrom,
+                                            widget.isGroupe
+                                                ? mapUserName[
+                                                    _messages[index].idFrom]
+                                                : '',
                                             widget.chatId)
                                       ],
                                     )
                                   : ChatMessageListItem(
                                       _messages[index],
                                       widget.myId == _messages[index].idFrom,
-                                      _messages[index].idFrom,
+                                      widget.isGroupe
+                                          ? mapUserName[_messages[index].idFrom]
+                                          : '',
                                       widget.chatId));
                         },
                       )
@@ -392,9 +405,9 @@ class ChatMessageListItem extends StatefulWidget {
   final Message message;
   final bool isMe;
   final String chatId;
-  final String idFrom;
+  final String nameFrom;
 
-  ChatMessageListItem(this.message, this.isMe, this.chatId, this.idFrom);
+  ChatMessageListItem(this.message, this.isMe, this.chatId, this.nameFrom);
 
   @override
   _ChatMessageListItemState createState() => _ChatMessageListItemState();
@@ -489,12 +502,26 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                             bottomLeft: Radius.circular(0),
                           ),
                   ),
-                  child: Text(
-                    widget.message.message,
-                    textAlign: widget.isMe ? TextAlign.end : TextAlign.start,
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
+                  child: Column(
+                    children: <Widget>[
+                      widget.nameFrom.isNotEmpty
+                          ? Text(
+                              widget.nameFrom,
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            )
+                          : SizedBox(),
+                      Text(
+                        widget.message.message,
+                        textAlign:
+                            widget.isMe ? TextAlign.end : TextAlign.start,
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 !widget.isMe

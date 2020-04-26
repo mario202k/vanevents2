@@ -13,9 +13,17 @@ class MyEvent {
   final String chatId;
   final String status;
 
-
-  MyEvent({this.id, this.titre, this.description, this.imageUrl, this.dateDebut,
-      this.dateFin, this.location,this.address , this.chatId, this.status});
+  MyEvent(
+      {this.id,
+      this.titre,
+      this.description,
+      this.imageUrl,
+      this.dateDebut,
+      this.dateFin,
+      this.location,
+      this.address,
+      this.chatId,
+      this.status});
 
   Map<String, dynamic> toMap() {
     return {
@@ -27,19 +35,21 @@ class MyEvent {
       'dateFin': this.dateFin,
       'location': this.location,
       'address': this.address,
-      'chatId':this.chatId,
+      'chatId': this.chatId,
       'status': this.status,
     };
   }
 
-  factory MyEvent.fromMap(Map<String, dynamic> map,String documentId) {
+  factory MyEvent.fromMap(Map<String, dynamic> map, String documentId) {
     Timestamp dateDebut = map['dateDebut'] ?? '';
     Timestamp dateFin = map['dateFin'] ?? '';
 
     String coordsString = map['location'];
 
-    String latitude = coordsString.substring(0,coordsString.indexOf(',')).trim();
-    String longitude = coordsString.substring(coordsString.indexOf(',')+1).trim();
+    String latitude =
+        coordsString.substring(0, coordsString.indexOf(',')).trim();
+    String longitude =
+        coordsString.substring(coordsString.indexOf(',') + 1).trim();
 
     return MyEvent(
       id: documentId,
