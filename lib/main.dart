@@ -46,13 +46,13 @@ class MyApp extends StatelessWidget {
       secondary: const Color(0xFF218b0e),
       secondaryVariant: const Color(0xFF00600f),
       background: const Color(0xFF790e8b),
-      surface: const Color(0xFFFFFFFF),
+      surface: const Color(0xFF00600f),
       onBackground: const Color(0xFFFFFFFF),
       error: const Color(0xFF8b0e21),
       onError: const Color(0xFFFFFFFF),
       onPrimary: const Color(0xFF000000),
       onSecondary: const Color(0xFFFFFFFF),
-      onSurface: const Color(0xFF000000),
+      onSurface: const Color(0xFFFFFFFF),
       brightness: Brightness.light);
 
   @override
@@ -123,8 +123,8 @@ class MyApp extends StatelessWidget {
                         color: colorScheme.onPrimary,
                       ),
                       title: GoogleFonts.sourceCodePro(
-                        fontSize: 16.0,
-                        color: colorScheme.onPrimary,
+                        fontSize: 20.0,
+                        color: colorScheme.onBackground,
                       ),
                       button: GoogleFonts.sourceCodePro(
                         fontSize: 15.0,
@@ -195,6 +195,14 @@ Future<dynamic> myBackgroundMessageHandler(Map<String, dynamic> message) {
   var platformChannelSpecifics = NotificationDetails(
       androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
 
+  db
+      .collection('chats')
+      .document(message['data']['chatId'])
+      .collection('messages')
+      .document(message['data']['id'])
+      .setData({'state': 1}, merge: true).then((_) {
+    print('done!!!!');
+
   flutterLocalNotificationsPlugin.show(
       0,
       message['notification']['title'],
@@ -204,13 +212,7 @@ Future<dynamic> myBackgroundMessageHandler(Map<String, dynamic> message) {
       platformChannelSpecifics,
       payload: '');
 
-  db
-      .collection('chats')
-      .document(message['data']['chatId'])
-      .collection('messages')
-      .document(message['data']['id'])
-      .setData({'state': 1}, merge: true).then((_) {
-    print('done!!!!');
+
   }).catchError((e) {
     print(e);
     print('merde');

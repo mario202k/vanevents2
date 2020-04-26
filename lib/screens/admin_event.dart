@@ -19,12 +19,12 @@ class AdminEvents extends StatefulWidget {
 
 class _AdminEventsState extends State<AdminEvents> {
   Stream streamEvents;
-  List<Event> events = List<Event>();
+  List<MyEvent> events = List<MyEvent>();
 
   @override
   Widget build(BuildContext context) {
     final db = Provider.of<FirestoreDatabase>(context, listen: false);
-    streamEvents = db.eventsStream();
+    streamEvents = db.allEventsAdminStream();
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -32,7 +32,7 @@ class _AdminEventsState extends State<AdminEvents> {
         preferredSize: Size(double.infinity, 100),
         child: TopAppBar('Admin', false, null, double.infinity),
       ),
-      body: StreamBuilder<List<Event>>(
+      body: StreamBuilder<List<MyEvent>>(
           stream: streamEvents,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
@@ -80,7 +80,9 @@ class _AdminEventsState extends State<AdminEvents> {
                                             ),
                                             FlatButton(
                                               child: Text('Oui'),
-                                              onPressed: () {},
+                                              onPressed: () {
+                                                db.cancelEvent(events.elementAt(index).id);
+                                              },
                                             ),
                                           ],
                                         )

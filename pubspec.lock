@@ -8,6 +8,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  add_2_calendar:
+    dependency: "direct main"
+    description:
+      name: add_2_calendar
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.4.0"
   after_init:
     dependency: "direct main"
     description:
@@ -288,13 +295,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
-  equatable:
-    dependency: transitive
-    description:
-      name: equatable
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.1"
   file:
     dependency: transitive
     description:
@@ -386,13 +386,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.10.11"
-  fl_chart:
-    dependency: "direct main"
-    description:
-      name: fl_chart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.9.0"
   flare_dart:
     dependency: transitive
     description:
@@ -433,6 +426,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0"
+  flutter_circular_chart:
+    dependency: "direct main"
+    description:
+      name: flutter_circular_chart
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.0"
   flutter_colorpicker:
     dependency: transitive
     description:
@@ -645,7 +645,7 @@ packages:
       name: image_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.5"
+    version: "0.6.5+2"
   intl:
     dependency: "direct main"
     description:
@@ -688,6 +688,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.6"
+  map_launcher:
+    dependency: "direct main"
+    description:
+      name: map_launcher
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.5"
   matcher:
     dependency: transitive
     description:
@@ -751,20 +758,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.6.4"
-  path_drawing:
-    dependency: transitive
-    description:
-      name: path_drawing
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.1"
-  path_parsing:
-    dependency: transitive
-    description:
-      name: path_parsing
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.4"
   path_provider:
     dependency: "direct main"
     description:
@@ -905,6 +898,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.0.5"
+  share_extend:
+    dependency: "direct main"
+    description:
+      name: share_extend
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.5"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -1092,13 +1092,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.9.7+14"
-  wc_flutter_share:
-    dependency: "direct main"
-    description:
-      name: wc_flutter_share
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.0"
   web_socket_channel:
     dependency: transitive
     description:

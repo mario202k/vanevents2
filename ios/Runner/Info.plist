@@ -63,5 +63,24 @@
     <true/>
     <key>FirebaseAppDelegateProxyEnabled</key>
     <false/>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Can we access storage in order to create Pdf?</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Used to capture audio for image picker plugin</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Used to demonstrate image picker plugin</string>
+    <key>NSCalendarsUsageDescription</key>
+    <string>Create events</string>
+    <key>NSContactsUsageDescription</key>
+    <string>Add people to event</string>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>comgooglemaps</string>
+        <string>baidumap</string>
+        <string>iosamap</string>
+        <string>waze</string>
+        <string>yandexmaps</string>
+        <string>yandexnavi</string>
+    </array>
 </dict>
 </plist>

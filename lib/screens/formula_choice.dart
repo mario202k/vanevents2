@@ -84,7 +84,7 @@ class _FormulaChoiceState extends State<FormulaChoice> {
   }
 
   void onTap(bool plus, Formule formule) {
-    int prix = formule.prix;
+    double prix = formule.prix;
 
     if (plus) {
       nbPersonneParFormule[formule]++;
@@ -175,10 +175,10 @@ class _FormulaChoiceState extends State<FormulaChoice> {
     if (participant == null) {
       if (isNom) {
         participants.add(Participant(
-            fbKey: _fbKey, index: index, formule: formule, nom: val));
+            fbKey: _fbKey, index: index, formule: formule, nom: val,isPresent: false));
       } else {
         participants.add(Participant(
-            fbKey: _fbKey, index: index, formule: formule, prenom: val));
+            fbKey: _fbKey, index: index, formule: formule, prenom: val,isPresent: false));
       }
     } else {
       int index = participants.indexOf(participant);
@@ -322,15 +322,14 @@ class _FormulaChoiceState extends State<FormulaChoice> {
                                       ' ' +
                                       (key as Participant).prenom,
                                   value: (val) =>
-                                      (val as Participant).formule.title);
+                                      [(val as Participant).formule.title,false]);
 
                               Ticket ticket = Ticket(
                                   id: paymentIntentX['id'],
                                   status: 'En attente',
                                   uid: user.id,
                                   eventId: widget.eventId,
-                                  nbParticipants: participants.length,
-                                  participant: participant,
+                                  participants: participant,
                                   amount: paymentIntentX['amount'],
                                   dateTime: DateTime.now(),
                                   receiptNumber: ((paymentIntentX['charges']
@@ -544,13 +543,14 @@ class _CardParticipantState extends State<CardParticipant> {
                         validators: [
                           FormBuilderValidators.required(
                               errorText: 'Champs requis'),
-                          (val) {
-                            RegExp regex =
-                                new RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_]{2,15}$');
-                            if (regex.allMatches(val).length == 0) {
-                              return 'Entre 2 et 15, ';
-                            }
-                          }
+                      (val) {
+                    RegExp regex = RegExp(
+                        r'^[a-zA-ZáàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ ]{2,30}$');
+
+                    if (regex.allMatches(val).length == 0) {
+                      return 'Entre 2 et 30, ';
+                    }
+                  },
                         ],
                       ),
                       SizedBox(
@@ -593,13 +593,14 @@ class _CardParticipantState extends State<CardParticipant> {
                         validators: [
                           FormBuilderValidators.required(
                               errorText: 'Champs requis'),
-                          (val) {
-                            RegExp regex =
-                                new RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_]{2,15}$');
+                              (val) {
+                            RegExp regex = RegExp(
+                                r'^[a-zA-ZáàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ ]{2,30}$');
+
                             if (regex.allMatches(val).length == 0) {
-                              return 'Entre 2 et 15, ';
+                              return 'Entre 2 et 30, ';
                             }
-                          }
+                          },
                         ],
                       )
                     ],

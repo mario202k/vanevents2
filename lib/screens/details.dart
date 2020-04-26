@@ -4,14 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:share_extend/share_extend.dart';
 import 'package:vanevents/models/event.dart';
 import 'package:vanevents/models/formule.dart';
 import 'package:vanevents/models/user.dart';
 import 'package:vanevents/routing/route.gr.dart';
 import 'package:vanevents/services/firestore_database.dart';
+import 'package:add_2_calendar/add_2_calendar.dart';
+import 'package:map_launcher/map_launcher.dart';
 
 class Details extends StatefulWidget {
-  final Event event;
+  final MyEvent event;
 
   Details(this.event);
 
@@ -100,39 +103,40 @@ class _DetailsState extends State<Details> {
               ),
               Row(
                 children: <Widget>[
-                  Flexible(
-                    flex: 1,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Icon(
-                          Icons.calendar_today,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text("Plannifier"),
-                        ),
-                      ],
-                    ),
+                  Expanded(
+                    child: FlatButton.icon(onPressed: (){
+
+                      final Event event = Event(
+                        title: widget.event.titre,
+                        description: widget.event.description,
+                        location: widget.event.address,
+                        startDate: widget.event.dateDebut,
+                        endDate: widget.event.dateFin,
+                      );
+
+                      Add2Calendar.addEvent2Cal(event);
+
+                    }, icon: Icon(
+                      Icons.calendar_today,
+                      color: Theme.of(context).colorScheme.primary,
+                    ), label: Text("Plannifier")),
                   ),
-                  Flexible(
-                    flex: 1,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        Icon(
-                          Icons.map,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text("Allons-y"),
-                        ),
-                      ],
-                    ),
+                  Expanded(
+                    child: FlatButton.icon(onPressed: ()async{
+                      final availableMaps = await MapLauncher.installedMaps;
+                      print(availableMaps); // [AvailableMap { mapName: Google Maps, mapType: google }, ...]
+
+                      await availableMaps.first.showMarker(
+                        coords: Coords(widget.event.location.latitude, widget.event.location.longitude),
+                        title: widget.event.titre,
+                        description: widget.event.address,
+                      );
+                    }, icon: Icon(
+                      Icons.map,
+                      color: Theme.of(context).colorScheme.primary,
+                    ), label: Text("Y aller")),
                   ),
+
                 ],
               ),
               SizedBox(

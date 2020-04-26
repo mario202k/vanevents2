@@ -11,13 +11,14 @@ import 'package:vanevents/screens/full_photo.dart';
 import 'package:vanevents/services/firestore_database.dart';
 
 class ChatRoom extends StatefulWidget {
+  final Map groupe;
   final String myId;
   final String nomFriend;
   final String imageFriend;
   final String chatId;
   final String friendId;
 
-  ChatRoom(
+  ChatRoom(this.groupe,
       this.myId, this.nomFriend, this.imageFriend, this.chatId, this.friendId);
 
   @override
@@ -61,10 +62,13 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
                         widget.nomFriend,
                         style: TextStyle(color: Colors.black),
                       ),
-                      Text(
-                        'En ligne',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                      ),
+                      widget.friendId != null
+                          ? Text(
+                              'En ligne',
+                              style: TextStyle(
+                                  color: Colors.grey[400], fontSize: 12),
+                            )
+                          : SizedBox(),
                     ],
                   ),
                 ),
@@ -82,14 +86,14 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
                             Theme.of(context).colorScheme.primary)),
                   );
                 } else if (snapshot.hasError) {
-                  print('Erreur de connection${snapshot.error.toString()}');
+                  print('Erreur de connexion${snapshot.error.toString()}');
                   db.showSnackBar(
-                      'Erreur de connection${snapshot.error.toString()}',
+                      'Erreur de connexion${snapshot.error.toString()}',
                       context);
-                  print('Erreur de connection${snapshot.error.toString()}');
+                  print('Erreur de connexion${snapshot.error.toString()}');
                   return Center(
                     child: Text(
-                      'Erreur de connection',
+                      'Erreur de connexion',
                       style: Theme.of(context).textTheme.display1,
                     ),
                   );
@@ -150,12 +154,14 @@ class _ChatRoomState extends State<ChatRoom> with TickerProviderStateMixin {
                                             _messages[index],
                                             widget.myId ==
                                                 _messages[index].idFrom,
+                                            _messages[index].idFrom,
                                             widget.chatId)
                                       ],
                                     )
                                   : ChatMessageListItem(
                                       _messages[index],
                                       widget.myId == _messages[index].idFrom,
+                                      _messages[index].idFrom,
                                       widget.chatId));
                         },
                       )
@@ -386,8 +392,9 @@ class ChatMessageListItem extends StatefulWidget {
   final Message message;
   final bool isMe;
   final String chatId;
+  final String idFrom;
 
-  ChatMessageListItem(this.message, this.isMe, this.chatId);
+  ChatMessageListItem(this.message, this.isMe, this.chatId, this.idFrom);
 
   @override
   _ChatMessageListItemState createState() => _ChatMessageListItemState();
@@ -398,7 +405,6 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   bool isRead = false;
   String id;
   Stream<Message> msgStream;
-
 
   Widget build(BuildContext context) {
     final db = Provider.of<FirestoreDatabase>(context, listen: false);
@@ -420,41 +426,39 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
               children: <Widget>[
                 widget.isMe
                     ? StreamBuilder<Message>(
-                            //pour écouté si le message est lu
-                            stream: msgStream,
-                            initialData: widget.message,
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                Message message = snapshot.data;
-                                int state = message.state;
-                                isReceive = false;
-                                isRead = false;
+                        //pour écouté si le message est lu
+                        stream: msgStream,
+                        initialData: widget.message,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            Message message = snapshot.data;
+                            int state = message.state;
+                            isReceive = false;
+                            isRead = false;
 
-                                print('coucou$state');
+                            print('coucou$state');
 
-                                switch (state) {
-                                  case 1:
-                                    isReceive = true;
+                            switch (state) {
+                              case 1:
+                                isReceive = true;
 
-                                    break;
-                                  case 2:
-                                    isReceive = true;
-                                    isRead = true;
-                                    if (msgStream != null) {
-
-                                      msgStream = null;
-                                    }
+                                break;
+                              case 2:
+                                isReceive = true;
+                                isRead = true;
+                                if (msgStream != null) {
+                                  msgStream = null;
                                 }
-                              }
+                            }
+                          }
 
-                              return Icon(
-                                IconData(isReceive ? 0xf382 : 0xf3d0,
-                                    fontFamily: "CupertinoIcons"),
-                                size: 19,
-                                color: isRead ? Colors.green : Colors.grey,
-                              );
-                            })
-
+                          return Icon(
+                            IconData(isReceive ? 0xf382 : 0xf3d0,
+                                fontFamily: "CupertinoIcons"),
+                            size: 19,
+                            color: isRead ? Colors.green : Colors.grey,
+                          );
+                        })
                     : SizedBox(),
                 widget.isMe
                     ? Text(

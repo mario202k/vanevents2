@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:after_init/after_init.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bubbled_navigation_bar/bubbled_navigation_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -77,7 +78,7 @@ class BaseScreens extends StatefulWidget {
   _BaseScreensState createState() => _BaseScreensState();
 }
 
-class _BaseScreensState extends State<BaseScreens> {
+class _BaseScreensState extends State<BaseScreens> with AfterInitMixin<BaseScreens> {
   //inner Drawer
   final GlobalKey<InnerDrawerState> _innerDrawerKey =
       GlobalKey<InnerDrawerState>();
@@ -173,10 +174,8 @@ class _BaseScreensState extends State<BaseScreens> {
     final FirebaseAuthService auth =
         Provider.of<FirebaseAuthService>(context, listen: false);
 
-    final User user = Provider.of<User>(context, listen: true);
+    final User user = Provider.of<User>(context, listen: false);
 
-    MySingletonFCM(user.id, context).registerNotification(user.id);
-    MySingletonFCM(user.id,context).configLocalNotification();
     final toggle = Provider.of<ValueNotifier<bool>>(context, listen: false);
     return Scaffold(
       body: InnerDrawer(
@@ -494,6 +493,14 @@ class _BaseScreensState extends State<BaseScreens> {
     _pageController.animateToPage(i,
         curve: Curves.easeInOutQuad, duration: Duration(milliseconds: 500));
     _menuPositionController.animateToPosition(i);
+  }
+
+  @override
+  void didInitState() {
+    final User user = Provider.of<User>(context, listen: false);
+
+    MySingletonFCM(user.id, context).registerNotification(user.id);
+    MySingletonFCM(user.id,context).configLocalNotification();
   }
 }
 

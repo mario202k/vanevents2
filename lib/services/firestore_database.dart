@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:map_launcher/map_launcher.dart';
 import 'package:meta/meta.dart';
 import 'package:vanevents/models/event.dart';
 import 'package:vanevents/models/formule.dart';
@@ -45,13 +46,20 @@ class FirestoreDatabase {
         builder: (data, documentId) => User.fromMap(data, documentId),
       );
 
-  Stream<List<Event>> eventsStream() => _service.collectionStream(
+  Stream<List<MyEvent>> allEventsAdminStream() => _service.collectionStream(
       path: FirestorePath.events(),
-      builder: (data, documentId) => Event.fromMap(data, documentId));
+      builder: (data, documentId) => MyEvent.fromMap(data, documentId));
 
-  Stream<Event> eventStream(String id) => _service.documentStream(
+  Stream<List<MyEvent>> eventsStream() => _service.collectionStream(
+      path: FirestorePath.events(),
+      builder: (data, documentId) => MyEvent.fromMap(data, documentId),
+      queryBuilder: (query) => query
+          .where('status', isEqualTo: 'A venir')
+          .where('dateFin', isGreaterThanOrEqualTo: DateTime.now()));
+
+  Stream<MyEvent> eventStream(String id) => _service.documentStream(
       path: FirestorePath.event(id),
-      builder: (data, documentId) => Event.fromMap(data, documentId));
+      builder: (data, documentId) => MyEvent.fromMap(data, documentId));
 
   //afin d'obtenir tous les autres donc sauf moi
   Stream<List<User>> usersStreamChat1() => _service.collectionStream(
@@ -59,16 +67,15 @@ class FirestoreDatabase {
       builder: (data, documentId) => User.fromMap(data, documentId),
       queryBuilder: (query) => query
           .where('id', isGreaterThan: uid)
-          .where('chat', arrayContains : uid)
+          .where('chat', arrayContains: uid)
       //.where('chatId.$uid', isLessThan : '\uf8ff')
       );
 
   Stream<List<User>> usersStreamChat2() => _service.collectionStream(
       path: FirestorePath.users(),
       builder: (data, documentId) => User.fromMap(data, documentId),
-      queryBuilder: (query) => query
-          .where('id', isLessThan: uid)
-          .where('chat', arrayContains : uid)
+      queryBuilder: (query) =>
+          query.where('id', isLessThan: uid).where('chat', arrayContains: uid)
       //.where('chatId.$uid', isLessThan : '\uf8ff')
       );
 
@@ -192,9 +199,9 @@ class FirestoreDatabase {
   Future<String> creationChatRoom(String idFriend) async {
     String idChatRoom;
 
-    await _db.collection('users').document(uid).get().then((doc)async{
+    await _db.collection('users').document(uid).get().then((doc) async {
       Map map = User.fromMap(doc.data, doc.documentID).chatId;
-      if(map != null){
+      if (map != null) {
         idChatRoom = map[idFriend];
       }
       if (idChatRoom == null) {
@@ -207,6 +214,7 @@ class FirestoreDatabase {
         await _db.collection('chats').document(idChatRoom).setData({
           'id': idChatRoom,
           'createdAt': DateTime.now(),
+          'isGroupe': false,
         });
         //Partage de l'ID chat room
         await _db.collection('users').document(uid).updateData({
@@ -218,7 +226,7 @@ class FirestoreDatabase {
           'chatId': {uid: idChatRoom}
         });
       }
-    }).catchError((err)=>print(err));
+    }).catchError((err) => print(err));
 
     return idChatRoom;
   }
@@ -244,11 +252,13 @@ class FirestoreDatabase {
       DateTime dateDebut,
       DateTime dateFin,
       String adresse,
+      Coords coords,
       String titre,
       String description,
       File image,
       List<Formule> formules,
       BuildContext context) async {
+
     //création du path pour le flyer
     String path = image.path.substring(image.path.lastIndexOf('/') + 1);
 
@@ -262,16 +272,28 @@ class FirestoreDatabase {
       DocumentReference reference = _db.collection("events").document();
       String idEvent = reference.documentID;
 
+      print('creation chat room');
+      //creation id chat
+      //création d'un chatRoom
+      String idChatRoom = _db.collection('chats').document().documentID;
+
+      await _db.collection('chats').document(idChatRoom).setData({
+        'id': idChatRoom,
+        'createdAt': DateTime.now(),
+        'isGroupe': true,
+      });
+
       await _db.collection("events").document(idEvent).setData({
         "id": idEvent,
+        'chatId':idChatRoom,
         "dateDebut": dateDebut,
         "dateFin": dateFin,
         "adresse": adresse,
+        'location':'${coords.latitude},${coords.longitude}',
         "titre": titre,
-        'status': 'En attente',
+        'status': 'A venir',
         "description": description,
         "imageUrl": url,
-        "participants": [],
       }, merge: true).then((_) async {
         formules.forEach((f) async {
           DocumentReference reference = _db
@@ -302,6 +324,7 @@ class FirestoreDatabase {
       }).then((_) {
         showSnackBar("Event ajouter", context);
       }).catchError((e) {
+        print(e);
         showSnackBar("impossible d'ajouter l'Event", context);
       });
     });
@@ -344,7 +367,7 @@ class FirestoreDatabase {
     });
   }
 
-  void showSnackBar(String val, BuildContext context) {
+  void showSnackBar(String val,BuildContext context) {
     Scaffold.of(context).showSnackBar(SnackBar(
         backgroundColor: Theme.of(context).colorScheme.error,
         duration: Duration(seconds: 3),
@@ -421,13 +444,21 @@ class FirestoreDatabase {
         .setData(ticket.toMap(), merge: true);
   }
 
-  Stream<List<Ticket>> streamTickets() {
+  Stream<List<Ticket>> streamTicketsUser() {
     return _db
         .collection('tickets')
         .where('uid', isEqualTo: uid)
         .snapshots()
         .map((docs) =>
             docs.documents.map((doc) => Ticket.fromMap(doc.data)).toList());
+  }
+  Stream<List<Ticket>> streamTicketsAdmin(String eventId) {
+    return _db
+        .collection('tickets')
+        .where('eventId', isEqualTo: eventId)
+        .snapshots()
+        .map((docs) =>
+        docs.documents.map((doc) => Ticket.fromMap(doc.data)).toList());
   }
 
   Stream<Ticket> streamTicket(String data) {
@@ -448,5 +479,71 @@ class FirestoreDatabase {
         .then((docs) => docs.documents
             .map((doc) => Formule.fromMap(doc.data, doc.documentID))
             .toList());
+  }
+
+  void cancelEvent(String id) {
+    _db
+        .collection('events')
+        .document(id)
+        .updateData({'status': 'Annuler'});
+  }
+
+  void ticketValidated(String id) {
+    db.collection('tickets').document(id)
+        .updateData({'status': 'Validé'});
+  }
+
+  void showSnackBar2(String val, GlobalKey<ScaffoldState> scaffoldKey) {
+    scaffoldKey.currentState.showSnackBar(SnackBar(
+        backgroundColor: Theme.of(scaffoldKey.currentState.context).colorScheme.error,
+        duration: Duration(seconds: 3),
+        content: Text(
+          val,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              color: Theme.of(scaffoldKey.currentState.context).colorScheme.onError, fontSize: 16.0),
+        )));
+
+  }
+
+  setToggleisHere(Map participant, String qrResult,int index) {
+
+    String key = participant.keys.toList()[index];
+    List val = participant[key];
+    bool isHere = val.removeAt(1);
+    isHere = !isHere;
+    val.insert(1, isHere);
+    db.collection('tickets').document(qrResult).updateData({'participant.$key' : val });
+
+  }
+
+  toutValider(Ticket onGoing) {
+
+    for(int i=0; i<onGoing.participants.length;i++ ){
+
+      setToggleisHere(onGoing.participants, onGoing.id, i);
+
+    }
+  }
+
+  Future<bool> chatRoomIsGroupe(String chatId)async {
+    return await db.collection('chats').document(chatId).get().then((doc)=>doc.data['isGroupe'] as bool);
+  }
+
+  Future addAmongGroupe(String chatId, String userName) async{
+
+    return await db.collection('chats').document(chatId).updateData({uid:userName});
+
+  }
+
+  Future<String> getChatId(String idFriend) async {
+
+    await _db.collection('users').document(uid).get().then((doc) async {
+      Map map = User
+          .fromMap(doc.data, doc.documentID)
+          .chatId;
+      return map[idFriend];
+    }
+    );
   }
 }

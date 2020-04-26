@@ -59,21 +59,17 @@ class _SignUpState extends State<SignUp> {
       setState(() {
         startAnimation = !startAnimation;
       });
-
     }
-
   }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
-
   }
 
   @override
   void dispose() {
-
 //    _name.dispose();
 //    _email.dispose();
 //    _password.dispose();
@@ -105,7 +101,7 @@ class _SignUpState extends State<SignUp> {
 
   double _getSizes() {
     //WidgetsBinding.instance.addPostFrameCallback();
-    if(key.currentContext != null){
+    if (key.currentContext != null) {
       final RenderBox renderBoxRed = key.currentContext.findRenderObject();
       final sizeRed = renderBoxRed.size;
 
@@ -130,13 +126,10 @@ class _SignUpState extends State<SignUp> {
 
   @override
   Widget build(BuildContext context) {
-
     final FirebaseAuthService auth =
-    Provider.of<FirebaseAuthService>(context, listen: false);
+        Provider.of<FirebaseAuthService>(context, listen: false);
 
 //    _auth = ModalRoute.of(context).settings.arguments;
-
-
 
     return Scaffold(
       body: Container(
@@ -189,7 +182,16 @@ class _SignUpState extends State<SignUp> {
                       width: startAnimation
                           ? viewportConstraints.maxWidth - 50
                           : 0,
-                      child: CardForm(formContent: ['Nom','Email','Mot de passe','Confirmation'],textButton: 'S\'inscrire',type: 'signup', ),
+                      child: CardForm(
+                        formContent: [
+                          'Nom',
+                          'Email',
+                          'Mot de passe',
+                          'Confirmation'
+                        ],
+                        textButton: 'S\'inscrire',
+                        type: 'signup',
+                      ),
                     ),
                   ),
                   ClipPath(

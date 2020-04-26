@@ -20,8 +20,8 @@ class HomeEvents extends StatefulWidget {
 }
 
 class _HomeEventsState extends State<HomeEvents> {
-  Stream<List<Event>> slides;
-  List<Event> events = List<Event>();
+  Stream<List<MyEvent>> slides;
+  List<MyEvent> events = List<MyEvent>();
   bool isDispose = false;
   bool startAnimation = false;
 
@@ -92,7 +92,7 @@ class _HomeEventsState extends State<HomeEvents> {
               minHeight: constraints.maxHeight,
             ),
             child: IntrinsicHeight(
-              child: StreamBuilder<List<Event>>(
+              child: StreamBuilder<List<MyEvent>>(
                   stream: slides,
                   builder: (context, AsyncSnapshot snap) {
                     if (snap.connectionState == ConnectionState.waiting) {
@@ -102,14 +102,14 @@ class _HomeEventsState extends State<HomeEvents> {
                                 Theme.of(context).colorScheme.secondary)),
                       );
                     } else if (snap.hasError) {
-                      print('Erreur de connection${snap.error.toString()}');
+                      print('Erreur de connexion${snap.error.toString()}');
                       db.showSnackBar(
-                          'Erreur de connection${snap.error.toString()}',
+                          'Erreur de connexion${snap.error.toString()}',
                           context);
-                      print('Erreur de connection${snap.error.toString()}');
+                      print('Erreur de connexion${snap.error.toString()}');
                       return Center(
                         child: Text(
-                          'Erreur de connection',
+                          'Erreur de connexion',
                           style: Theme.of(context).textTheme.display1,
                         ),
                       );

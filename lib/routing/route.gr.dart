@@ -209,7 +209,7 @@ class UploadEventArguments {
 
 //Details arguments holder class
 class DetailsArguments {
-  final Event event;
+  final MyEvent event;
   DetailsArguments({this.event});
 }
 

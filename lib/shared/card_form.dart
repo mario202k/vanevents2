@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:platform_alert_dialog/platform_alert_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:vanevents/services/firebase_auth_service.dart';
@@ -71,17 +73,8 @@ class _CardFormState extends State<CardForm> {
 //    SchedulerBinding.instance.addPostFrameCallback(_afterLayout());
   }
 
-//
-//  @override
-//  void didInitState() {
-//
-//
-//  }
-
   @override
   void didUpdateWidget(CardForm oldWidget) {
-    print('didUpdateWidget!!!!');
-    //_afterLayout();
     WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
     super.didUpdateWidget(oldWidget);
   }
@@ -98,69 +91,66 @@ class _CardFormState extends State<CardForm> {
   Widget build(BuildContext context) {
     auth = Provider.of<FirebaseAuthService>(context, listen: false);
     print('build card form');
-    return LayoutBuilder(
-      builder: (context, constraints) {
-
-        return Stack(
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                Card(
-                  key: key,
-                  elevation: 0,
-                  color: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        color: Theme.of(context).colorScheme.secondary,
-                        width: 2.0,
-                      ),
-                      borderRadius: BorderRadius.circular(24.0)),
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: FormBuilder(
-                      key: _fbKey,
-                      autovalidate: false,
-                      child: Column(
-                          children: List<Widget>.generate(
-                              widget.formContent.length,
-                              (index) => buildFormBuilder(
-                                  index, obscureTextSignupConfirm))),
+    return LayoutBuilder(builder: (context, constraints) {
+      return Stack(
+        children: <Widget>[
+          Column(
+            children: <Widget>[
+              Card(
+                key: key,
+                elevation: 0,
+                color: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.secondary,
+                      width: 2.0,
                     ),
+                    borderRadius: BorderRadius.circular(24.0)),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: FormBuilder(
+                    key: _fbKey,
+                    autovalidate: false,
+                    child: Column(
+                        children: List<Widget>.generate(
+                            widget.formContent.length,
+                            (index) => buildFormBuilder(
+                                index, obscureTextSignupConfirm))),
                   ),
                 ),
-                SizedBox(
-                  height: 20,
-                )
-              ],
-            ),
-            Positioned(
-              bottom: 0,
-              width: constraints.maxWidth,
-              child: AnimatedSwitcher(
-                duration: Duration(milliseconds: 500),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return ScaleTransition(
-                    scale: animation,
-                    child: child,
-                  );
-                },
-                child: !startAnimation
-                    ? RaisedButton(
-
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Text(
-                            widget.textButton,
-                          ),
-                        ),
-                        onPressed: () {
-                          onSubmit();
-                        })
-                    : CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            Theme.of(context).colorScheme.primary)),
               ),
+              SizedBox(
+                height: 20,
+              )
+            ],
+          ),
+          Positioned(
+            bottom: 0,
+            width: constraints.maxWidth,
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: 500),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return ScaleTransition(
+                  scale: animation,
+                  child: child,
+                );
+              },
+              child: !startAnimation
+                  ? RaisedButton(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Text(
+                          widget.textButton,
+                        ),
+                      ),
+                      onPressed: () {
+                        onSubmit();
+                      })
+                  : CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary)),
             ),
+          ),
 //          FractionalTranslation(
 //              translation: Offset(0.0, height),
 //              child: Align(
@@ -191,15 +181,15 @@ class _CardFormState extends State<CardForm> {
 //                              Theme.of(context).colorScheme.primary)),
 //                ),
 //              )),
-            widget.type == 'signup'
-                ? FractionalTranslation(
-                    translation: Offset(0.0, -0.5),
-                    child: Align(
-                      alignment: FractionalOffset(0.5, 0.0),
-                      child: FloatingActionButton(
-                        child: Icon(FontAwesomeIcons.calendar),
-                        onPressed: () {},
-                      ),
+          widget.type == 'signup'
+              ? FractionalTranslation(
+                  translation: Offset(0.0, -0.5),
+                  child: Align(
+                    alignment: FractionalOffset(0.5, 0.0),
+                    child: FloatingActionButton(
+                      child: Icon(FontAwesomeIcons.calendar),
+                      onPressed: () {},
+                    ),
 //                    child: CircleAvatar(
 //                        backgroundImage: _image != null
 //                            ? FileImage(_image)
@@ -254,13 +244,12 @@ class _CardFormState extends State<CardForm> {
 //                          },
 //                          padding: const EdgeInsets.all(50.0),
 //                        )),
-                    ),
-                  )
-                : SizedBox()
-          ],
-        );
-      }
-    );
+                  ),
+                )
+              : SizedBox()
+        ],
+      );
+    });
   }
 
   Future _getImageGallery() async {
@@ -348,6 +337,7 @@ class _CardFormState extends State<CardForm> {
         );
 
         break;
+
       case 'Email':
         textInput = TextInputType.emailAddress;
         validators = [
@@ -415,58 +405,82 @@ class _CardFormState extends State<CardForm> {
           icon: Icon(FontAwesomeIcons.eye),
         );
         break;
+      case 'Titre':
+        textInput = TextInputType.text;
+        validators = [
+          FormBuilderValidators.required(errorText: 'Champs requis'),
+          (val) {
+            RegExp regex = RegExp(
+                r'^[a-zA-ZáàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ]{2,15}$');
+
+            if (regex.allMatches(val).length == 0) {
+              return 'Entre 2 et 15, ';
+            }
+          },
+        ];
+        obscureText = false;
+        icon = Icon(
+          FontAwesomeIcons.user,
+          size: 22.0,
+          color: Theme.of(context).colorScheme.onSurface,
+        );
+
+        break;
     }
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-          8,
-          widget.type == 'signup' &&
-                  widget.formContent.elementAt(index) == 'Nom'
-              ? 60
-              : 10,
-          8,
-          10),
-      child: FormBuilderTextField(
-        keyboardType: textInput,
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-        cursorColor: Theme.of(context).colorScheme.onSurface,
-        attribute: widget.formContent.elementAt(index),
-        maxLines: 1,
-        obscureText: obscureText,
-        decoration: InputDecoration(
-            enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.onSurface, width: 2),
-                borderRadius: BorderRadius.circular(25.0)),
-            labelText: widget.formContent.elementAt(index),
-            labelStyle:
-                TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            border: InputBorder.none,
-            errorStyle:
-                TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            icon: icon,
-            suffixIcon: iconButton),
-        focusNode: _nodes.elementAt(index),
-        onEditingComplete: () {
-          String field = widget.formContent.elementAt(index);
-          if (_fbKey.currentState.fields[field].currentState.validate()) {
-            _nodes.elementAt(index).unfocus();
+        padding: EdgeInsets.fromLTRB(
+            8,
+            widget.type == 'signup' &&
+                    widget.formContent.elementAt(index) == 'Nom'
+                ? 60
+                : 10,
+            8,
+            10),
+        child: FormBuilderTextField(
+          keyboardType: textInput,
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          cursorColor: Theme.of(context).colorScheme.onSurface,
+          attribute: widget.formContent.elementAt(index),
+          maxLines:
+              widget.formContent.elementAt(index) != 'Description' ? 1 : 10,
+          obscureText: obscureText,
+          decoration: buildInputDecoration(
+              context, widget.formContent.elementAt(index)),
+          focusNode: _nodes.elementAt(index),
+          onEditingComplete: () {
+            String field = widget.formContent.elementAt(index);
+            if (_fbKey.currentState.fields[field].currentState.validate()) {
+              _nodes.elementAt(index).unfocus();
 
-            if (_nodes.length - 1 != index) {
-              FocusScope.of(context).requestFocus(_nodes.elementAt(index + 1));
-            } else {
-              onSubmit();
+              if (_nodes.length - 1 != index) {
+                FocusScope.of(context)
+                    .requestFocus(_nodes.elementAt(index + 1));
+              } else {
+                onSubmit();
+              }
             }
-          }
-        },
-        controller: _textEdit.elementAt(index),
-        onChanged: (val) {
-          if (_textEdit.elementAt(index).text.length == 0) {
-            _textEdit.elementAt(index).clear();
-          }
-        },
-        validators: validators,
-      ),
+          },
+          controller: _textEdit.elementAt(index),
+          onChanged: (val) {
+            if (_textEdit.elementAt(index).text.length == 0) {
+              _textEdit.elementAt(index).clear();
+            }
+          },
+          validators: validators,
+        ));
+  }
+
+  InputDecoration buildInputDecoration(BuildContext context, String labelText) {
+    return InputDecoration(
+      enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.onBackground, width: 2),
+          borderRadius: BorderRadius.circular(25.0)),
+      labelText: labelText,
+      labelStyle: Theme.of(context).textTheme.button,
+      border: InputBorder.none,
+      errorStyle: Theme.of(context).textTheme.button,
     );
   }
 }

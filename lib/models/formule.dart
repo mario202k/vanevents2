@@ -1,7 +1,7 @@
 class Formule {
   final String id;
   String title;
-  int prix;
+  double prix;
   int nombreDePersonne;
 
   Formule({this.id, this.title, this.prix, this.nombreDePersonne});

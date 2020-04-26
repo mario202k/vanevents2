@@ -22,7 +22,7 @@ class Chat extends StatefulWidget {
 }
 
 class _ChatState extends State<Chat> with TickerProviderStateMixin {
-  Stream <List<List<User>>> friendUser;
+  Stream<List<List<User>>> friendUser;
   List<User> users = List<User>();
 
   @override
@@ -64,13 +64,12 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                     //qui ont deja discuter
                     //initialData: [[],[]],
                     builder: (context, snapshot) {
-
                       print(snapshot.data);
 
                       if (snapshot.hasError) {
                         print(snapshot.error);
                         return Center(
-                          child: Text('Erreur de connection'),
+                          child: Text('Erreur de connexion'),
                         );
                       } else if (snapshot.connectionState ==
                           ConnectionState.waiting) {
@@ -89,8 +88,9 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                           ? ListView.separated(
                               shrinkWrap: true,
                               separatorBuilder: (context, index) => Divider(
-                                    color:
-                                        Theme.of(context).colorScheme.secondary,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground,
                                     thickness: 1,
                                   ),
                               itemCount: users.length,
@@ -136,17 +136,16 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                                           userFriend.nom,
                                           style: Theme.of(context)
                                               .textTheme
-                                              .display1
-                                              .copyWith(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onPrimary),
+                                              .title,
                                         ),
                                         subtitle: message.type == 0
                                             ? Text(
                                                 message.message,
                                                 overflow: TextOverflow.ellipsis,
                                                 maxLines: 1,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .button,
                                               )
                                             : message.type == 1
                                                 ? Row(
@@ -156,7 +155,11 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                                                       SizedBox(
                                                         width: 10,
                                                       ),
-                                                      Text('Photo')
+                                                      Text('Photo',
+                                                          style:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .button)
                                                     ],
                                                   )
                                                 : message.type == 2
@@ -167,28 +170,37 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                                                           SizedBox(
                                                             width: 10,
                                                           ),
-                                                          Text('gif')
+                                                          Text('gif',
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .button)
                                                         ],
                                                       )
-                                                    : Text(
-                                                        message.message,
+                                                    : Text(message.message,
                                                         overflow: TextOverflow
                                                             .ellipsis,
                                                         maxLines: 1,
-                                                      ),
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .button),
                                         onTap: () {
                                           db
-                                              .creationChatRoom(userFriend.id)
+                                              .getChatId(userFriend.id)
                                               .then((chatId) {
-                                            Router.navigator.pushNamed(
-                                                Routes.chatRoom,
-                                                arguments: ChatRoomArguments(
-                                                    myId: db.uid,
-                                                    nomFriend: userFriend.nom,
-                                                    imageFriend:
-                                                        userFriend.imageUrl,
-                                                    chatId: chatId,
-                                                    friendId: userFriend.id));
+                                                db.chatRoomIsGroupe(chatId).then((rep){
+                                                  Router.navigator.pushNamed(
+                                                      Routes.chatRoom,
+                                                      arguments: ChatRoomArguments(
+                                                        isGroupe:rep,
+                                                          myId: db.uid,
+                                                          nomFriend: userFriend.nom,
+                                                          imageFriend:
+                                                          userFriend.imageUrl,
+                                                          chatId: chatId,
+                                                          friendId: userFriend.id));
+                                                });
+
 //                                          Navigator.of(context).pushNamed(
 //                                              Router.chatRoom,
 //                                              arguments: ChatRoomArguments(

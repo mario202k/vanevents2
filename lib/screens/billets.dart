@@ -12,7 +12,7 @@ import 'package:vanevents/routing/route.gr.dart';
 import 'package:vanevents/services/firestore_database.dart';
 import 'package:vanevents/shared/topAppBar.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:wc_flutter_share/wc_flutter_share.dart';
+import 'package:share_extend/share_extend.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -34,7 +34,7 @@ class _BilletsState extends State<Billets> {
   @override
   Widget build(BuildContext context) {
     final db = Provider.of<FirestoreDatabase>(context, listen: false);
-    streamTickets = db.streamTickets();
+    streamTickets = db.streamTicketsUser();
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: PreferredSize(
@@ -57,7 +57,7 @@ class _BilletsState extends State<Billets> {
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Center(
-                      child: Text('Erreur de connection'),
+                      child: Text('Erreur de connexion'),
                     );
                   } else if (snapshot.connectionState ==
                       ConnectionState.waiting) {
@@ -153,22 +153,29 @@ class _BilletsState extends State<Billets> {
           ); // Center
         })); //
 
-    final directory = await getApplicationDocumentsDirectory();
+    final directory = Platform.isAndroid
+        ? await getExternalStorageDirectory()
+        : await getApplicationDocumentsDirectory();
     String tempPath = directory.path;
 
-    final file = File('$tempPath/$id.pdf');
+    final file = File('$tempPath/QrCode.pdf');
     await file.writeAsBytes(pdf.save());
 
-    try {
-      final ByteData bytes = await rootBundle.load('$tempPath/$id.pdf');
-      await WcFlutterShare.share(
-          sharePopupTitle: 'Billet',
-          fileName: 'Billet.pdf',
-          mimeType: 'application/pdf',
-          bytesOfFile: bytes.buffer.asUint8List());
-    } catch (e) {
-      print('error: $e');
-    }
+    ShareExtend.share(file.path, "file");
+
+//    try {
+//      print('//');
+//      final ByteData bytes = await rootBundle.load('$tempPath/$id.pdf');
+//      print(tempPath);
+//      print('//');
+//      await WcFlutterShare.share(
+//          sharePopupTitle: 'Billet',
+//          fileName: 'Billet.pdf',
+//          mimeType: 'application/pdf',
+//          bytesOfFile: bytes.buffer.asUint8List());
+//    } catch (e) {
+//      print('error: $e');
+//    }
 
 //    Uint8List bytes = file.readAsBytesSync();
 //

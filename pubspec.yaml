@@ -36,15 +36,15 @@ dependencies:
   firebase_messaging: ^6.0.13
   firebase_core: ^0.4.4+3
   firebase_analytics: ^5.0.11
-  image_picker: ^0.6.5
+  image_picker: ^0.6.5+2
   font_awesome_flutter: ^8.8.1
-  flare_flutter: ^2.0.1
+  flare_flutter: ^2.0.3
   bubbled_navigation_bar: ^0.0.4
   flutter_progress_button: ^1.0.0
   flutter_inner_drawer: ^0.5.5
   flutter_swiper: ^1.1.6
   flutter_local_notifications: ^1.3.0
-  fl_chart: ^0.9.0
+  flutter_circular_chart: ^0.1.0
   intl: ^0.16.1
   platform_alert_dialog: ^1.0.0+2
   scoped_model: ^1.0.1
@@ -64,8 +64,10 @@ dependencies:
   screen: ^0.0.5
   majascan: ^0.3.6
   pdf: ^1.6.0
-  wc_flutter_share: ^0.2.0
   path_provider: ^1.6.5
+  share_extend: ^1.1.5
+  add_2_calendar: ^1.4.0
+  map_launcher: ^0.4.5
 dev_dependencies:
   auto_route_generator: ^0.4.0
   build_runner: ^1.8.0
@@ -96,6 +98,8 @@ flutter:
     - assets/img/normal_user_icon.png
     - assets/img/img_not_available.jpeg
     - assets/img/vanlogo.png
+    - assets/animations/Nope.flr
+    - assets/animations/ok.flr
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

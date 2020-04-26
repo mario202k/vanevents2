@@ -8,15 +8,17 @@ class Participant{
   Formule formule;
   String nom;
   String prenom;
+  bool isPresent;
 
 
-  Participant({this.fbKey,this.index,this.formule, this.nom, this.prenom});
+  Participant({this.fbKey,this.index,this.formule, this.nom, this.prenom, this.isPresent});
 
   Map<String, dynamic> toMap() {
     return {
       'formule': this.formule,
       'nom': this.nom,
       'prenom': this.prenom,
+      'isPresent': this.isPresent,
     };
   }
 
@@ -25,6 +27,7 @@ class Participant{
       formule: map['formule'] as Formule,
       nom: map['nom'] as String,
       prenom: map['prenom'] as String,
+      isPresent: map['isPresent'] as bool,
     );
   }
 
